@@ -6,11 +6,15 @@ import json
 with open("secrets.txt", encoding="UTF-8") as filedata:
     data = eval(filedata.read())
 
-runFutures = 1
+runFutures = 0
 
 
 def start(update: Update, context: CallbackContext) -> None:
     """Sends explanation on how to use the bot."""
+    txt = 'Las alertas del bot se envían a t.me/CryptoPiolaAlerts'
+
+    update.message.reply_text(txt)
+
     txt = 'Cómo funciona esto?'
     txt += chr(10)
     txt += 'Operando con spot/futuros se puede obtener un buen rendimiento en USDT en plazos menores a 3 meses.'
@@ -52,12 +56,22 @@ def stopFuturesAuto(update: Update, context: CallbackContext):
     if update.effective_chat.id in [data["chatNacho"]]:
         global runFutures
         runFutures = 0
+        context.job_queue.stop()
+        context.bot.send_message(chat_id=data["chatNacho"],
+                                 text='Runfutures: ' + str(runFutures) + ' se paró la ejecución de futuros')
 
 def startFuturesAuto(update: Update, context: CallbackContext):
     if update.effective_chat.id in [data["chatNacho"]]:
         global runFutures
         runFutures = 1
         context.job_queue.run_repeating(futuresAuto, interval=1800.0, first=0.0)
+        context.bot.send_message(chat_id=data["chatNacho"],
+                                 text='Runfutures: ' + str(runFutures) + ' comenzó ejecución de futuros')
+
+def checkFuturesAuto(update: Update, context: CallbackContext):
+    if update.effective_chat.id in [data["chatNacho"]]:
+        context.bot.send_message(chat_id=data["chatNacho"],
+                                 text='Runfutures: ' + str(runFutures))
 
 def futuresAuto(context: CallbackContext):
     if runFutures == 1:
@@ -103,7 +117,7 @@ def main():
     dispatcher.add_handler(CommandHandler("futures", futures))
     dispatcher.add_handler(CommandHandler("startFuturesAuto", startFuturesAuto))
     dispatcher.add_handler(CommandHandler("stopFuturesAuto", stopFuturesAuto))
-
+    dispatcher.add_handler(CommandHandler("checkFuturesAuto", checkFuturesAuto))
 
     # Start the Bot
     updater.start_polling()
