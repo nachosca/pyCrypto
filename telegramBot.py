@@ -52,7 +52,7 @@ def start(update: Update, context: CallbackContext) -> None:
     txt = 'Si hacemos un 4% cada 3 meses -> a fin de año es un 17% aprox de ganancia asegurada.'
     update.message.reply_text(txt)
 
-def stopFuturesAuto(update: Update, context: CallbackContext):
+def stop_futures_auto(update: Update, context: CallbackContext):
     if update.effective_chat.id in [data["chatNacho"]]:
         global runFutures
         runFutures = 0
@@ -60,22 +60,22 @@ def stopFuturesAuto(update: Update, context: CallbackContext):
         context.bot.send_message(chat_id=data["chatNacho"],
                                  text='Runfutures: ' + str(runFutures) + ' se paró la ejecución de futuros')
 
-def startFuturesAuto(update: Update, context: CallbackContext):
+def start_futures_auto(update: Update, context: CallbackContext):
     if update.effective_chat.id in [data["chatNacho"]]:
         global runFutures
         runFutures = 1
-        context.job_queue.run_repeating(futuresAuto, interval=1800.0, first=0.0)
+        context.job_queue.run_repeating(futures_auto, interval=1800.0, first=0.0)
         context.bot.send_message(chat_id=data["chatNacho"],
                                  text='Runfutures: ' + str(runFutures) + ' comenzó ejecución de futuros')
 
-def checkFuturesAuto(update: Update, context: CallbackContext):
+def check_futures_auto(update: Update, context: CallbackContext):
     if update.effective_chat.id in [data["chatNacho"]]:
         context.bot.send_message(chat_id=data["chatNacho"],
                                  text='Runfutures: ' + str(runFutures))
 
-def futuresAuto(context: CallbackContext):
+def futures_auto(context: CallbackContext):
     if runFutures == 1:
-        result = checkFutures()
+        result = check_futures()
         resultText = ""
 
         for i in result:
@@ -91,7 +91,7 @@ def futuresAuto(context: CallbackContext):
 def futures(update: Update, context: CallbackContext):
     if update.effective_chat.id in [data["chatNacho"]]:
 
-        result = checkFutures()
+        result = check_futures()
 
         resultText = ""
 
@@ -102,6 +102,13 @@ def futures(update: Update, context: CallbackContext):
         context.bot.send_message(chat_id=context._chat_id_and_data[0], text=resultText)
     else:
         update.message.reply_text('Tomatela gato.')
+
+
+def send_message():
+    url = f"https://api.telegram.org/bot{data['botToken']}/sendMessage"
+    params = {"chat_id": data["chatNacho"], "text": "Bot has just Started"}
+    requests.get(url, params=params)
+
 
 
 def main():
@@ -115,12 +122,14 @@ def main():
     # on different commands - answer in Telegram
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CommandHandler("futures", futures))
-    dispatcher.add_handler(CommandHandler("startFuturesAuto", startFuturesAuto))
-    dispatcher.add_handler(CommandHandler("stopFuturesAuto", stopFuturesAuto))
-    dispatcher.add_handler(CommandHandler("checkFuturesAuto", checkFuturesAuto))
+    dispatcher.add_handler(CommandHandler("startFuturesAuto", start_futures_auto))
+    dispatcher.add_handler(CommandHandler("stopFuturesAuto", stop_futures_auto))
+    dispatcher.add_handler(CommandHandler("checkFuturesAuto", check_futures_auto))
 
     # Start the Bot
     updater.start_polling()
+
+    send_message()
 
     # Block until you press Ctrl-C or the process receives SIGINT, SIGTERM or
     # SIGABRT. This should be used most of the time, since start_polling() is
@@ -128,7 +137,7 @@ def main():
     updater.idle()
 
 
-def checkFutures():
+def check_futures():
     name = '220325'
     lst = json.loads(requests.get('https://dapi.binance.com/dapi/v1/premiumIndex').content)
     lst = [d for d in lst if name in d['symbol']]
