@@ -52,6 +52,24 @@ def start(update: Update, context: CallbackContext) -> None:
     txt = 'Si hacemos un 4% cada 3 meses -> a fin de año es un 17% aprox de ganancia asegurada.'
     update.message.reply_text(txt)
 
+
+def help(update: Update, context: CallbackContext):
+    if update.effective_chat.id in [data["chatNacho"]]:
+        """Sends explanation on how to use the bot."""
+        txt = '/getIp - devuelve el ip del host'
+        txt += chr(10)
+        txt += '/start - cómo funciona'
+        txt += chr(10)
+        txt += '/futures - cuánto están rindiendo'
+        txt += chr(10)
+        txt += '/startFuturesAuto - empieza el robot del rendimiento'
+        txt += chr(10)
+        txt += '/stopFuturesAuto - para el robot del rendimiento'
+        txt += chr(10)
+        txt += '/stopFuturesAuto - checkea el estado del robot del rendimiento'
+        context.bot.send_message(chat_id=data["chatNacho"], text=txt)
+
+
 def stop_futures_auto(update: Update, context: CallbackContext):
     if update.effective_chat.id in [data["chatNacho"]]:
         global runFutures
@@ -59,6 +77,7 @@ def stop_futures_auto(update: Update, context: CallbackContext):
         context.job_queue.stop()
         context.bot.send_message(chat_id=data["chatNacho"],
                                  text='Runfutures: ' + str(runFutures) + ' se paró la ejecución de futuros')
+
 
 def start_futures_auto(update: Update, context: CallbackContext):
     if update.effective_chat.id in [data["chatNacho"]]:
@@ -68,10 +87,18 @@ def start_futures_auto(update: Update, context: CallbackContext):
         context.bot.send_message(chat_id=data["chatNacho"],
                                  text='Runfutures: ' + str(runFutures) + ' comenzó ejecución de futuros')
 
+
 def check_futures_auto(update: Update, context: CallbackContext):
     if update.effective_chat.id in [data["chatNacho"]]:
         context.bot.send_message(chat_id=data["chatNacho"],
                                  text='Runfutures: ' + str(runFutures))
+
+
+def get_ip(update: Update, context: CallbackContext):
+    if update.effective_chat.id in [data["chatNacho"]]:
+        ip = requests.get('https://api.ipify.org').content.decode('utf8')
+        context.bot.send_message(chat_id=data["chatNacho"], text=ip)
+
 
 def futures_auto(context: CallbackContext):
     if runFutures == 1:
@@ -125,6 +152,8 @@ def main():
     dispatcher.add_handler(CommandHandler("startFuturesAuto", start_futures_auto))
     dispatcher.add_handler(CommandHandler("stopFuturesAuto", stop_futures_auto))
     dispatcher.add_handler(CommandHandler("checkFuturesAuto", check_futures_auto))
+    dispatcher.add_handler(CommandHandler("getIp", get_ip))
+    dispatcher.add_handler(CommandHandler("help", help))
 
     # Start the Bot
     updater.start_polling()
