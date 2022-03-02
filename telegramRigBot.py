@@ -2,7 +2,7 @@ from telegram import Update
 from telegram.ext import Updater, CommandHandler, CallbackContext
 import requests
 import subprocess
-import os
+import platform
 
 
 with open("/home/user/python/secrets.txt", encoding="UTF-8") as filedata:
@@ -73,8 +73,7 @@ def miner_start(update: Update, context: CallbackContext):
 
 def send_message():
     url = f"https://api.telegram.org/bot{data['botToken']}/sendMessage"
-    computer_name = str(os.environ['COMPUTERNAME'])
-    params = {"chat_id": data["chatId"], "text": "Bot " + computer_name + " has just Started"}
+    params = {"chat_id": data["chatId"], "text": "Bot " + platform.node() + " has just Started"}
     requests.get(url, params=params)
 
 def main():
