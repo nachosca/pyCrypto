@@ -13,11 +13,12 @@ def start(update: Update, context: CallbackContext) -> None:
     txt = 'Useless bot'
 
     update.message.reply_text(txt)
+    update.message.reply_text(update.effective_chat.id)
 
 def help(update: Update, context: CallbackContext):
     if update.effective_chat.id in [int(data["chatId"])]:
         """Sends explanation on how to use the bot Rig Nacho."""
-        txt = '/g etIp - devuelve el ip del host'
+        txt = '/getIp - devuelve el ip del host'
         txt += chr(10)
         txt += '/start - cómo funciona'
         txt += chr(10)
@@ -31,7 +32,7 @@ def help(update: Update, context: CallbackContext):
         context.bot.send_message(chat_id=context._chat_id_and_data[0], text=txt)
 
 def get_ip(update: Update, context: CallbackContext):
-    if update.effective_chat.id in [int(data["chatId"])]:
+    if update.effective_chat.id in [data["chatId"]]:
         ip = requests.get('https://api.ipify.org').content.decode('utf8')
         context.bot.send_message(chat_id=data["chatId"], text=ip)
 
