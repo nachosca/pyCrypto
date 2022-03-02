@@ -2,6 +2,7 @@ from telegram import Update
 from telegram.ext import Updater, CommandHandler, CallbackContext
 import requests
 import subprocess
+import os
 
 
 with open("/home/user/python/secrets.txt", encoding="UTF-8") as filedata:
@@ -32,7 +33,7 @@ def help(update: Update, context: CallbackContext):
         context.bot.send_message(chat_id=context._chat_id_and_data[0], text=txt)
 
 def get_ip(update: Update, context: CallbackContext):
-    if update.effective_chat.id in [data["chatId"]]:
+    if update.effective_chat.id in [int(data["chatId"])]:
         ip = requests.get('https://api.ipify.org').content.decode('utf8')
         context.bot.send_message(chat_id=data["chatId"], text=ip)
 
@@ -72,7 +73,7 @@ def miner_start(update: Update, context: CallbackContext):
 
 def send_message():
     url = f"https://api.telegram.org/bot{data['botToken']}/sendMessage"
-    params = {"chat_id": data["chatId"], "text": "Bot RigNachoMueble has just Started"}
+    params = {"chat_id": data["chatId"], "text": "Bot " + os.environ['COMPUTERNAME'] + " has just Started"}
     requests.get(url, params=params)
 
 def main():
