@@ -49,24 +49,24 @@ def reboot(update: Update, context: CallbackContext):
 def miner_restart(update: Update, context: CallbackContext):
     if update.effective_chat.id in [int(data["chatId"])]:
         cmd = 'miner restart'
-        result = subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        context.bot.send_message(chat_id=context._chat_id_and_data[0], text=result.stderr.decode('utf-8'))
+        subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        context.bot.send_message(chat_id=context._chat_id_and_data[0], text='Restarting miner...')
     else:
         update.message.reply_text('Tomatela gato.')
 
 def miner_stop(update: Update, context: CallbackContext):
     if update.effective_chat.id in [int(data["chatId"])]:
         cmd = 'miner stop'
-        result = subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        context.bot.send_message(chat_id=context._chat_id_and_data[0], text=result.stderr.decode('utf-8'))
+        subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        context.bot.send_message(chat_id=context._chat_id_and_data[0], text='Stopping miner...')
     else:
         update.message.reply_text('Tomatela gato.')
 
 def miner_start(update: Update, context: CallbackContext):
     if update.effective_chat.id in [int(data["chatId"])]:
         cmd = 'miner start'
-        result = subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        context.bot.send_message(chat_id=context._chat_id_and_data[0], text=result.stderr.decode('utf-8'))
+        subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        context.bot.send_message(chat_id=context._chat_id_and_data[0], text='Starting miner...')
     else:
         update.message.reply_text('Tomatela gato.')
 
