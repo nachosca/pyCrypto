@@ -1,0 +1,15 @@
+[Unit]
+Description=My Script
+After=network.target
+
+[Service]
+User=root
+Group=root
+Type=idle
+Restart=on-failure
+Environment="PATH=/home/user/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/bin:/hive/bin:/sbin"
+WorkingDirectory=/home/user
+ExecStart=/usr/bin/python3 /home/user/python/bot.py
+
+[Install]
+WantedBy=multi-user.target
