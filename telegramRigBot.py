@@ -179,7 +179,10 @@ def get_miner_stats():
 
 def send_message():
     url = f"https://api.telegram.org/bot{data['botToken']}/sendMessage"
-    params = {"chat_id": data["chatId"], "text": "Bot " + platform.node() + " has just Started"}
+    txt = "Bot " + platform.node() + " has just Started"
+    txt += chr(10)
+    txt += "Ejecutar /startCheckRig para que comience a checkear el rig."
+    params = {"chat_id": data["chatId"], "text": txt}
     requests.get(url, params=params)
 
 
