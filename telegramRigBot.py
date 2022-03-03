@@ -91,7 +91,7 @@ def start_check_rig(update: Update, context: CallbackContext):
     if update.effective_chat.id in [int(data["chatId"])]:
         global runCheck
         runCheck = True
-        context.job_queue.run_repeating(check_bot, interval=300.0, first=0.0)
+        context.job_queue.run_repeating(check_bot, interval=30.0, first=0.0)
         context.bot.send_message(chat_id=data["chatId"],
                                  text='Runfutures: ' + str(runCheck) + ' comenzó ejecución de check rig')
 
