@@ -91,7 +91,7 @@ def start_check_rig(update: Update, context: CallbackContext):
     if update.effective_chat.id in [int(data["chatId"])]:
         global runCheck
         runCheck = True
-        context.job_queue.run_repeating(check_bot, interval=30.0, first=0.0)
+        context.job_queue.run_repeating(check_bot, interval=300.0, first=0.0)
         context.bot.send_message(chat_id=data["chatId"],
                                  text='Runfutures: ' + str(runCheck) + ' comenzó ejecución de check rig')
 
@@ -137,7 +137,7 @@ def check_bot(context: CallbackContext):
             dict_result['Media'] = harmonic_mean
 
             for i in dict_result['hs']:
-                if (harmonic_mean / i - 1) > float(0.000001):
+                if (harmonic_mean / i - 1) > float(0.05):
                     context.bot.send_message(chat_id=data["chatId"], text=json.dumps(dict_result, sort_keys=True, indent=4).replace('\n', chr(10)))
                     context.bot.send_message(chat_id=data["chatId"], text=txt_problem())
                     break
