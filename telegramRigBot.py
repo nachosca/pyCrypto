@@ -133,11 +133,11 @@ def check_bot(context: CallbackContext):
         try:
             dict_result = get_miner_stats()
 
-            median = statistics.median(map(float, dict_result['hs']))
-            dict_result['median'] = median
+            harmonic_mean = statistics.harmonic_mean(map(float, dict_result['hs']))
+            dict_result['Media'] = harmonic_mean
 
             for i in dict_result['hs']:
-                if (median / i - 1) > float(0.001):
+                if (harmonic_mean / i - 1) > float(0.000001):
                     context.bot.send_message(chat_id=data["chatId"], text=json.dumps(dict_result, sort_keys=True, indent=4).replace('\n', chr(10)))
                     context.bot.send_message(chat_id=data["chatId"], text=txt_problem())
                     break
