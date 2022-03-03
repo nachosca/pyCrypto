@@ -134,6 +134,7 @@ def check_bot(context: CallbackContext):
             dict_result = get_miner_stats()
 
             median = statistics.median(map(float, dict_result['hs']))
+            dict_result['median'] = median
 
             for i in dict_result['hs']:
                 if (median / i - 1) > float(0.001):
