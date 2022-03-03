@@ -41,6 +41,8 @@ def help(update: Update, context: CallbackContext):
         txt += '/startCheckRig - comienza a checkear el minero'
         txt += chr(10)
         txt += '/stopCheckRig - para de checkear el minero'
+        txt += chr(10)
+        txt += '/selfUpdate - bot self update'
         context.bot.send_message(chat_id=context._chat_id_and_data[0], text=txt)
 
 
@@ -185,6 +187,7 @@ def main():
     dispatcher.add_handler(CommandHandler("rigStats", get_rig_stats))
     dispatcher.add_handler(CommandHandler("startCheckRig", start_check_rig))
     dispatcher.add_handler(CommandHandler("stopCheckRig", stop_check_rig))
+    dispatcher.add_handler(CommandHandler("selfUpdate", self_update))
 
     # Start the Bot
     updater.start_polling()
