@@ -133,7 +133,9 @@ def get_miner_stats():
         else:
             continue
 
+    print(log_text)
     dict_log = json.loads(log_text)["params"]["miner_stats"]
+    print(dict_log)
 
     whiteList = ['hs', 'temp']
     dict_result = dict((k, v) for k, v in dict_log.iteritems() if k in whiteList)
