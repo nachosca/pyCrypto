@@ -123,15 +123,22 @@ def check_bot(context: CallbackContext):
 
 
 def get_miner_stats():
-    hive_log = open("/var/log/hive-agent.log", "r").readlines()
+    print("starting get miner stats")
+    hive_log_file = open("/var/log/hive-agent.log", "r")
+    hive_log = hive_log_file.readlines()
+    hive_log_file.close()
+
     log_text = ""
     for i in reversed(hive_log):
+        print("reversed")
+        print(i.find("method"))
         if i.find("method"):
             log_text = i[i.find("{")::]
             print(log_text)
             break
         else:
             continue
+
 
     print(log_text)
     dict_log = json.loads(log_text)["params"]["miner_stats"]
