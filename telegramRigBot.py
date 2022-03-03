@@ -2,8 +2,12 @@ from telegram import Update
 from telegram.ext import Updater, CommandHandler, CallbackContext
 import requests
 import subprocess
+import json
 import platform
+import statistics
 
+
+runCheck = True
 
 with open("/home/user/python/secrets.txt", encoding="UTF-8") as filedata:
     data = eval(filedata.read())
@@ -15,6 +19,7 @@ def start(update: Update, context: CallbackContext) -> None:
 
     update.message.reply_text(txt)
     update.message.reply_text(update.effective_chat.id)
+
 
 def help(update: Update, context: CallbackContext):
     if update.effective_chat.id in [int(data["chatId"])]:
@@ -29,8 +34,15 @@ def help(update: Update, context: CallbackContext):
         txt += chr(10)
         txt += '/minerStop - para el minero'
         txt += chr(10)
-        txt += '/minerStart - arrancha el minero'
+        txt += '/minerStart - arranca el minero'
+        txt += chr(10)
+        txt += '/rigStats - stats del minero'
+        txt += chr(10)
+        txt += '/startCheckRig - comienza a checkear el minero'
+        txt += chr(10)
+        txt += '/stopCheckRig - para de checkear el minero'
         context.bot.send_message(chat_id=context._chat_id_and_data[0], text=txt)
+
 
 def get_ip(update: Update, context: CallbackContext):
     if update.effective_chat.id in [int(data["chatId"])]:
@@ -46,6 +58,7 @@ def reboot(update: Update, context: CallbackContext):
     else:
         update.message.reply_text('Tomatela gato.')
 
+
 def miner_restart(update: Update, context: CallbackContext):
     if update.effective_chat.id in [int(data["chatId"])]:
         cmd = 'miner restart'
@@ -54,6 +67,7 @@ def miner_restart(update: Update, context: CallbackContext):
     else:
         update.message.reply_text('Tomatela gato.')
 
+
 def miner_stop(update: Update, context: CallbackContext):
     if update.effective_chat.id in [int(data["chatId"])]:
         cmd = 'miner stop'
@@ -61,6 +75,7 @@ def miner_stop(update: Update, context: CallbackContext):
         context.bot.send_message(chat_id=context._chat_id_and_data[0], text='Stopping miner...')
     else:
         update.message.reply_text('Tomatela gato.')
+
 
 def miner_start(update: Update, context: CallbackContext):
     if update.effective_chat.id in [int(data["chatId"])]:
@@ -71,10 +86,66 @@ def miner_start(update: Update, context: CallbackContext):
         update.message.reply_text('Tomatela gato.')
 
 
+def start_check_rig(update: Update, context: CallbackContext):
+    if update.effective_chat.id in [data["chatId"]]:
+        global runCheck
+        runCheck = True
+        context.job_queue.run_repeating(check_bot, interval=300.0, first=0.0)
+        context.bot.send_message(chat_id=data["chatId"],
+                                 text='Runfutures: ' + str(runCheck) + ' comenzó ejecución de check rig')
+
+
+def stop_check_rig(update: Update, context: CallbackContext):
+    if update.effective_chat.id in [data["chatId"]]:
+        global runCheck
+        runCheck = False
+        context.job_queue.stop()
+        context.bot.send_message(chat_id=data["chatId"],
+                                 text='Runfutures: ' + str(runCheck) + ' se paró la ejecución de check rig')
+
+
+def get_rig_stats(update: Update, context: CallbackContext):
+    if update.effective_chat.id in [data["chatId"]]:
+        dict_result = get_miner_stats()
+        context.bot.send_message(chat_id=data["chatId"], text=json.dumps(dict_result))
+
+
+def check_bot(context: CallbackContext):
+    if runCheck == 1:
+        dict_result = get_miner_stats()
+
+        median = statistics.median(map(float, dict_result['hs']))
+
+        for i in dict_result['hs']:
+            if (median/i - 1) > float(0.1):
+                context.bot.send_message(chat_id=data["chatId"], text=json.dumps(dict_result))
+                break
+
+
+def get_miner_stats():
+    hive_log = open("/var/log/hive-agent.log", "r").readlines()
+    log_text = ""
+    for i in reversed(hive_log):
+        if i.find("method"):
+            log_text = i[i.find("{")::]
+            print(log_text)
+            break
+        else:
+            continue
+
+    dict_log = json.loads(log_text)["params"]["miner_stats"]
+
+    whiteList = ['hs', 'temp']
+    dict_result = dict((k, v) for k, v in dict_log.iteritems() if k in whiteList)
+    dict_result['hs'] = [0 if x is None else x / 1024 / 1024 for x in dict_result['hs']]
+
+    return dict_result
+
 def send_message():
     url = f"https://api.telegram.org/bot{data['botToken']}/sendMessage"
     params = {"chat_id": data["chatId"], "text": "Bot " + platform.node() + " has just Started"}
     requests.get(url, params=params)
+
 
 def main():
     """Run bot."""
@@ -92,6 +163,9 @@ def main():
     dispatcher.add_handler(CommandHandler("minerRestart", miner_restart))
     dispatcher.add_handler(CommandHandler("minerStop", miner_stop))
     dispatcher.add_handler(CommandHandler("minerStart", miner_start))
+    dispatcher.add_handler(CommandHandler("rigStats", get_rig_stats))
+    dispatcher.add_handler(CommandHandler("startCheckRig", start_check_rig))
+    dispatcher.add_handler(CommandHandler("stopCheckRig", stop_check_rig))
 
     # Start the Bot
     updater.start_polling()
