@@ -6,7 +6,6 @@ import json
 import platform
 import statistics
 
-
 runCheck = True
 
 with open("/home/user/python/secrets.txt", encoding="UTF-8") as filedata:
@@ -110,15 +109,10 @@ def get_rig_stats(update: Update, context: CallbackContext):
     if update.effective_chat.id in [int(data["chatId"])]:
         try:
             dict_result = get_miner_stats()
-            context.bot.send_message(chat_id=data["chatId"], text=json.dumps(dict_result))
+            context.bot.send_message(chat_id=data["chatId"],
+                                     text=json.dumps(dict_result, sort_keys=True, indent=2).replace('\n', '%0A'))
         except:
-            txt = 'Rig con problemas. Ejecutar:'
-            txt += chr(10)
-            txt += '/reboot - resetea el rig'
-            txt += chr(10)
-            txt += '/minerRestart - resetea el minero'
-            txt += chr(10)
-            context.bot.send_message(chat_id=data["chatId"], text=txt)
+            context.bot.send_message(chat_id=data["chatId"], text=txt_problem())
 
 
 def self_update(update: Update, context: CallbackContext):
@@ -130,7 +124,7 @@ def self_update(update: Update, context: CallbackContext):
         cmd = 'sudo systemctl daemon-reload'
         subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         cmd = 'systemctl restart bot.service'
-        context.bot.send_message(chat_id=data["chatId"], text=json.dumps("update OK"))
+        context.bot.send_message(chat_id=data["chatId"], text="update OK")
         subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 
@@ -142,18 +136,22 @@ def check_bot(context: CallbackContext):
             median = statistics.median(map(float, dict_result['hs']))
 
             for i in dict_result['hs']:
-                if (median/i - 1) > float(0.1):
-                    context.bot.send_message(chat_id=data["chatId"], text=json.dumps(dict_result))
+                if (median / i - 1) > float(0.001):
+                    context.bot.send_message(chat_id=data["chatId"], text=json.dumps(dict_result, sort_keys=True, indent=2).replace('\n', '%0A'))
+                    context.bot.send_message(chat_id=data["chatId"], text=txt_problem())
                     break
         except:
-            txt = 'Rig con problemas. Ejecutar:'
-            txt += chr(10)
-            txt += '/reboot - resetea el rig'
-            txt += chr(10)
-            txt += '/minerRestart - resetea el minero'
-            txt += chr(10)
-            context.bot.send_message(chat_id=data["chatId"], text=txt)
+            context.bot.send_message(chat_id=data["chatId"], text=txt_problem())
 
+
+def txt_problem():
+    txt = 'Rig con problemas. Ejecutar:'
+    txt += chr(10)
+    txt += '/reboot - resetea el rig'
+    txt += chr(10)
+    txt += '/minerRestart - resetea el minero'
+    txt += chr(10)
+    return txt
 
 def get_miner_stats():
     hive_log_file = open("/var/log/hive-agent.log", "r")
@@ -176,6 +174,7 @@ def get_miner_stats():
     dict_result['hs'] = [0 if x is None else round(x / 1024 / 1024, 2) for x in dict_result['hs']]
 
     return dict_result
+
 
 def send_message():
     url = f"https://api.telegram.org/bot{data['botToken']}/sendMessage"
