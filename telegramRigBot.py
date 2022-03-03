@@ -110,7 +110,7 @@ def get_rig_stats(update: Update, context: CallbackContext):
         try:
             dict_result = get_miner_stats()
             context.bot.send_message(chat_id=data["chatId"],
-                                     text=json.dumps(dict_result, sort_keys=True, indent=2).replace('\n', chr(10)))
+                                     text=json.dumps(dict_result, sort_keys=True, indent=4).replace('\n', chr(10)))
         except:
             context.bot.send_message(chat_id=data["chatId"], text=txt_problem())
 
@@ -138,7 +138,7 @@ def check_bot(context: CallbackContext):
 
             for i in dict_result['hs']:
                 if (median / i - 1) > float(0.001):
-                    context.bot.send_message(chat_id=data["chatId"], text=json.dumps(dict_result, sort_keys=True, indent=2).replace('\n', chr(10)))
+                    context.bot.send_message(chat_id=data["chatId"], text=json.dumps(dict_result, sort_keys=True, indent=4).replace('\n', chr(10)))
                     context.bot.send_message(chat_id=data["chatId"], text=txt_problem())
                     break
         except:
