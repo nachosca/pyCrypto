@@ -89,7 +89,7 @@ def miner_start(update: Update, context: CallbackContext):
 
 
 def start_check_rig(update: Update, context: CallbackContext):
-    if update.effective_chat.id in [data["chatId"]]:
+    if update.effective_chat.id in [int(data["chatId"])]:
         global runCheck
         runCheck = True
         context.job_queue.run_repeating(check_bot, interval=300.0, first=0.0)
@@ -98,7 +98,7 @@ def start_check_rig(update: Update, context: CallbackContext):
 
 
 def stop_check_rig(update: Update, context: CallbackContext):
-    if update.effective_chat.id in [data["chatId"]]:
+    if update.effective_chat.id in [int(data["chatId"])]:
         global runCheck
         runCheck = False
         context.job_queue.stop()
@@ -107,13 +107,13 @@ def stop_check_rig(update: Update, context: CallbackContext):
 
 
 def get_rig_stats(update: Update, context: CallbackContext):
-    if update.effective_chat.id in [data["chatId"]]:
+    if update.effective_chat.id in [int(data["chatId"])]:
         dict_result = get_miner_stats()
         context.bot.send_message(chat_id=data["chatId"], text=json.dumps(dict_result))
 
 def self_update(update: Update, context: CallbackContext):
     context.bot.send_message(chat_id=data["chatId"], text="1")
-    if update.effective_chat.id in [data["chatId"]]:
+    if update.effective_chat.id in [int(data["chatId"])]:
         cmd = 'curl -o /home/user/python/bot.py https://raw.githubusercontent.com/nachosca/pyCrypto/main/telegramRigBot.py'
         context.bot.send_message(chat_id=data["chatId"], text="2")
         result = subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
