@@ -172,7 +172,7 @@ def get_miner_stats():
 
     whiteList = ['hs', 'temp']
     dict_result = dict((k, v) for k, v in dict_log.items() if k in whiteList)
-    dict_result['hs'] = [0 if x is None else round(x / 1024 / 1024, 2) for x in dict_result['hs']]
+    dict_result['hs'] = [0 if x is None else round(x / 1000 / 1000, 2) for x in dict_result['hs']]
 
     return dict_result
 
