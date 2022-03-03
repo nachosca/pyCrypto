@@ -112,23 +112,14 @@ def get_rig_stats(update: Update, context: CallbackContext):
         context.bot.send_message(chat_id=data["chatId"], text=json.dumps(dict_result))
 
 def self_update(update: Update, context: CallbackContext):
-    context.bot.send_message(chat_id=data["chatId"], text="1")
     if update.effective_chat.id in [int(data["chatId"])]:
-        cmd = 'curl -o /home/user/python/bot.py https://raw.githubusercontent.com/nachosca/pyCrypto/main/telegramRigBot.py'
-        context.bot.send_message(chat_id=data["chatId"], text="2")
-        result = subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        context.bot.send_message(chat_id=data["chatId"], text=result.stderr.decode('utf-8'))
-        cmd = 'sudo systemctl daemon-reload'
-        context.bot.send_message(chat_id=data["chatId"], text="3")
+        cmd = 'curl -o /home/user/python/bot.py https://raw.githubusercontent.com/nachosca/pyCrypto/main/telegramRigBot.py -H "Cache-Control: no-cache"'
         subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        result = subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        context.bot.send_message(chat_id=data["chatId"], text=result.stderr.decode('utf-8'))
+        cmd = 'sudo systemctl daemon-reload'
+        subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         cmd = 'systemctl restart bot.service'
-        context.bot.send_message(chat_id=data["chatId"], text="4")
         context.bot.send_message(chat_id=data["chatId"], text=json.dumps("update OK"))
         subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        context.bot.send_message(chat_id=data["chatId"], text="5")
-    context.bot.send_message(chat_id=data["chatId"], text="6")
 
 
 def check_bot(context: CallbackContext):
