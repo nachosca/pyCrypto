@@ -123,7 +123,9 @@ def get_rig_stats(update: Update, context: CallbackContext):
 
 def self_update(update: Update, context: CallbackContext):
     if update.effective_chat.id in [int(data["chatId"])]:
-        cmd = 'curl -H "Cache-Control: no-cache" -o /home/user/python/bot.py https://raw.githubusercontent.com/nachosca/pyCrypto/main/telegramRigBot.py?$RANDOM'
+        cmd = 'curl -o /home/user/python/bot.py https://raw.githubusercontent.com/nachosca/pyCrypto/main/telegramRigBot.py'
+        subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        cmd = 'curl -o /etc/systemd/system/bot.service https://raw.githubusercontent.com/nachosca/pyCrypto/main/bot.service'
         subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         cmd = 'sudo systemctl daemon-reload'
         subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
