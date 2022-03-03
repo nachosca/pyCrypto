@@ -108,8 +108,18 @@ def stop_check_rig(update: Update, context: CallbackContext):
 
 def get_rig_stats(update: Update, context: CallbackContext):
     if update.effective_chat.id in [int(data["chatId"])]:
-        dict_result = get_miner_stats()
-        context.bot.send_message(chat_id=data["chatId"], text=json.dumps(dict_result))
+        try:
+            dict_result = get_miner_stats()
+            context.bot.send_message(chat_id=data["chatId"], text=json.dumps(dict_result))
+        except:
+            txt = 'Rig con problemas. Ejecutar:'
+            txt += chr(10)
+            txt += '/reboot - resetea el rig'
+            txt += chr(10)
+            txt += '/minerRestart - resetea el minero'
+            txt += chr(10)
+            context.bot.send_message(chat_id=data["chatId"], text=txt)
+
 
 def self_update(update: Update, context: CallbackContext):
     if update.effective_chat.id in [int(data["chatId"])]:
@@ -124,26 +134,32 @@ def self_update(update: Update, context: CallbackContext):
 
 def check_bot(context: CallbackContext):
     if runCheck == 1:
-        dict_result = get_miner_stats()
+        try:
+            dict_result = get_miner_stats()
 
-        median = statistics.median(map(float, dict_result['hs']))
+            median = statistics.median(map(float, dict_result['hs']))
 
-        for i in dict_result['hs']:
-            if (median/i - 1) > float(0.1):
-                context.bot.send_message(chat_id=data["chatId"], text=json.dumps(dict_result))
-                break
+            for i in dict_result['hs']:
+                if (median/i - 1) > float(0.1):
+                    context.bot.send_message(chat_id=data["chatId"], text=json.dumps(dict_result))
+                    break
+        except:
+            txt = 'Rig con problemas. Ejecutar:'
+            txt += chr(10)
+            txt += '/reboot - resetea el rig'
+            txt += chr(10)
+            txt += '/minerRestart - resetea el minero'
+            txt += chr(10)
+            context.bot.send_message(chat_id=data["chatId"], text=txt)
 
 
 def get_miner_stats():
-    print("starting get miner stats")
     hive_log_file = open("/var/log/hive-agent.log", "r")
     hive_log = hive_log_file.readlines()
     hive_log_file.close()
 
     log_text = ""
     for i in reversed(hive_log):
-        print("reversed")
-        print(i.find("method"))
         if "method" in i:
             log_text = i[i.find("{")::]
             break
