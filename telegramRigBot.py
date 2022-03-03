@@ -113,7 +113,7 @@ def get_rig_stats(update: Update, context: CallbackContext):
 
 def self_update(update: Update, context: CallbackContext):
     if update.effective_chat.id in [int(data["chatId"])]:
-        cmd = 'curl -o /home/user/python/bot.py https://raw.githubusercontent.com/nachosca/pyCrypto/main/telegramRigBot.py -H "Cache-Control: no-cache"'
+        cmd = 'curl -H "Cache-Control: no-cache" -o /home/user/python/bot.py https://raw.githubusercontent.com/nachosca/pyCrypto/main/telegramRigBot.py?$RANDOM'
         subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         cmd = 'sudo systemctl daemon-reload'
         subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -144,13 +144,11 @@ def get_miner_stats():
     for i in reversed(hive_log):
         print("reversed")
         print(i.find("method"))
-        if i.find("method"):
+        if "method" in i:
             log_text = i[i.find("{")::]
-            print(log_text)
             break
         else:
             continue
-
 
     print(log_text)
     dict_log = json.loads(log_text)["params"]["miner_stats"]
