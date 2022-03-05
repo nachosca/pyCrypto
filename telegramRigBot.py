@@ -7,6 +7,7 @@ import platform
 import statistics
 
 runCheck = True
+percentageAccepted = 0.1
 
 with open("/home/user/python/secrets.txt", encoding="UTF-8") as filedata:
     data = eval(filedata.read())
@@ -42,6 +43,8 @@ def help(update: Update, context: CallbackContext):
         txt += '/stopCheckRig - para de checkear el minero'
         txt += chr(10)
         txt += '/selfUpdate - bot self update'
+        txt += chr(10)
+        txt += '/updatePercentageCheck [Float, < 0.2, default 0.1] - updates percentage to show GPU alerts'
         context.bot.send_message(chat_id=context._chat_id_and_data[0], text=txt)
 
 
@@ -129,7 +132,7 @@ def self_update(update: Update, context: CallbackContext):
 
 
 def check_bot(context: CallbackContext):
-    if runCheck == 1:
+    if runCheck is True:
         try:
             dict_result = get_miner_stats()
 
@@ -143,6 +146,19 @@ def check_bot(context: CallbackContext):
                     break
         except:
             context.bot.send_message(chat_id=data["chatId"], text=txt_problem())
+
+def update_percentage_check(update: Update, context: CallbackContext):
+    if update.effective_chat.id in [int(data["chatId"])]:
+        try:
+            global percentageAccepted
+            if float(context.args[0]) < 0.2:
+                percentageAccepted = float(context.args[0])
+                context.bot.send_message(chat_id=data["chatId"], text="Porcentaje de baja actualizado a: " + str(percentageAccepted))
+            else:
+                context.bot.send_message(chat_id=data["chatId"], text="No tenés chances.")
+        except:
+            context.bot.send_message(chat_id=data["chatId"], text="Error en parámetro.")
+
 
 
 def txt_problem():
@@ -206,6 +222,7 @@ def main():
     dispatcher.add_handler(CommandHandler("startCheckRig", start_check_rig))
     dispatcher.add_handler(CommandHandler("stopCheckRig", stop_check_rig))
     dispatcher.add_handler(CommandHandler("selfUpdate", self_update))
+    dispatcher.add_handler(CommandHandler("updatePercentageCheck", update_percentage_check))
 
     # Start the Bot
     updater.start_polling()
