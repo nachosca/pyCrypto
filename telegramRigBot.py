@@ -140,7 +140,7 @@ def check_bot(context: CallbackContext):
             dict_result['Media'] = harmonic_mean
 
             for i in dict_result['hs']:
-                if (harmonic_mean / i - 1) > float(0.05):
+                if (harmonic_mean / i - 1) > float(percentageAccepted):
                     context.bot.send_message(chat_id=data["chatId"], text=json.dumps(dict_result, sort_keys=True, indent=4).replace('\n', chr(10)))
                     context.bot.send_message(chat_id=data["chatId"], text=txt_problem())
                     break
