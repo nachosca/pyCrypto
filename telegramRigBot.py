@@ -55,6 +55,16 @@ def get_ip(update: Update, context: CallbackContext):
         context.bot.send_message(chat_id=data["chatId"], text=ip)
 
 
+def check_wifi():
+    try:
+        requests.get('https://api.ipify.org').content.decode('utf8')
+    except:
+        cmd = 'sudo ifconfig wlan0 down'
+        subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        cmd = 'sudo ifconfig wlan0 up'
+        subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+
 def reboot(update: Update, context: CallbackContext):
     if update.effective_chat.id in [int(data["chatId"])]:
         cmd = 'sudo reboot'
@@ -97,6 +107,7 @@ def start_check_rig(update: Update, context: CallbackContext):
         if runCheck is False:
             runCheck = True
             context.job_queue.run_repeating(check_bot, interval=300.0, first=0.0)
+            context.job_queue.run_repeating(check_wifi, interval=300.0, first=0.0)
             context.bot.send_message(chat_id=data["chatId"],
                                      text='CheckRig: ' + str(runCheck) + ' comenzó ejecución de check rig')
 
