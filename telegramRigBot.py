@@ -8,6 +8,7 @@ import statistics
 
 runCheck = True
 percentageAccepted = 0.1
+gpus = 0
 
 with open("/home/user/python/secrets.txt", encoding="UTF-8") as filedata:
     data = eval(filedata.read())
@@ -135,7 +136,17 @@ def self_update(update: Update, context: CallbackContext):
 def check_bot(context: CallbackContext):
     if runCheck is True:
         try:
+            global gpus
+
             dict_result = get_miner_stats()
+
+            if gpus == 0:
+                gpus = len(dict_result['temp'])
+            else:
+                if gpus != len(dict_result['temp']):
+                    context.bot.send_message(chat_id=data["chatId"], text=json.dumps(dict_result, sort_keys=True, indent=4).replace('\n', chr(10)))
+                    raise Exception()
+
 
             harmonic_mean = statistics.harmonic_mean(map(float, dict_result['hs']))
             dict_result['Media'] = harmonic_mean
