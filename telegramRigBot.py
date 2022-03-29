@@ -94,11 +94,11 @@ def miner_start(update: Update, context: CallbackContext):
 def start_check_rig(update: Update, context: CallbackContext):
     if update.effective_chat.id in [int(data["chatId"])]:
         global runCheck
-        if runCheck is True:
+        if runCheck is False:
             runCheck = True
             context.job_queue.run_repeating(check_bot, interval=300.0, first=0.0)
             context.bot.send_message(chat_id=data["chatId"],
-                                     text='Runfutures: ' + str(runCheck) + ' comenzó ejecución de check rig')
+                                     text='CheckRig: ' + str(runCheck) + ' comenzó ejecución de check rig')
 
 
 def stop_check_rig(update: Update, context: CallbackContext):
@@ -107,7 +107,7 @@ def stop_check_rig(update: Update, context: CallbackContext):
         runCheck = False
         context.job_queue.stop()
         context.bot.send_message(chat_id=data["chatId"],
-                                 text='Runfutures: ' + str(runCheck) + ' se paró la ejecución de check rig')
+                                 text='CheckRig: ' + str(runCheck) + ' se paró la ejecución de check rig')
 
 
 def get_rig_stats(update: Update, context: CallbackContext):
