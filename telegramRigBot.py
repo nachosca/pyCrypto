@@ -93,10 +93,11 @@ def miner_start(update: Update, context: CallbackContext):
 def start_check_rig(update: Update, context: CallbackContext):
     if update.effective_chat.id in [int(data["chatId"])]:
         global runCheck
-        runCheck = True
-        context.job_queue.run_repeating(check_bot, interval=300.0, first=0.0)
-        context.bot.send_message(chat_id=data["chatId"],
-                                 text='Runfutures: ' + str(runCheck) + ' comenzó ejecución de check rig')
+        if runCheck is True:
+            runCheck = True
+            context.job_queue.run_repeating(check_bot, interval=300.0, first=0.0)
+            context.bot.send_message(chat_id=data["chatId"],
+                                     text='Runfutures: ' + str(runCheck) + ' comenzó ejecución de check rig')
 
 
 def stop_check_rig(update: Update, context: CallbackContext):
@@ -187,8 +188,9 @@ def get_miner_stats():
     print(dict_log)
 
     whiteList = ['hs', 'temp']
+    units = 1000 if dict_log['hsUnits'] is not None or 'mhs' else 1
     dict_result = dict((k, v) for k, v in dict_log.items() if k in whiteList)
-    dict_result['hs'] = [0 if x is None else round(x / 1000, 2) for x in dict_result['hs']]
+    dict_result['hs'] = [0 if x is None else round(x / units, 2) for x in dict_result['hs']]
 
     return dict_result
 
