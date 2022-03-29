@@ -152,16 +152,16 @@ def check_bot(context: CallbackContext):
             dict_result = get_miner_stats()
 
             print('1' + str(gpus))
-            print('1' + len(dict_result['temp']))
+            print('1' + str(len(dict_result['temp'])))
             if gpus == 0:
-                gpus = len(dict_result['temp'])
+                gpus = str(len(dict_result['temp']))
 
                 print('2' + str(gpus))
-                print('2' + len(dict_result['temp']))
+                print('2' + str(len(dict_result['temp'])))
             else:
                 if gpus != len(dict_result['temp']):
                     print('3' + str(gpus))
-                    print('3' + len(dict_result['temp']))
+                    print('3' + str(len(dict_result['temp'])))
                     context.bot.send_message(chat_id=data["chatId"], text=json.dumps(dict_result, sort_keys=True, indent=4).replace('\n', chr(10)))
                     raise Exception()
 
@@ -216,10 +216,19 @@ def get_miner_stats():
     dict_log = json.loads(log_text)["params"]["miner_stats"]
     print(dict_log)
 
-    whiteList = ['hs', 'temp']
-    units = 1000 if dict_log['hsUnits'] is not None or 'mhs' else 1
+    white_list = ['hs', 'temp']
+
+    units = dict_log.get('hs_units')
+    print(units)
+    print(type(units))
+
+    if dict_log.get('hs_units') is not None and dict_log.get('hs_units') != 'mhs':
+        units = 1000
+    else:
+        units = 1
+
     print('units ' + str(units))
-    dict_result = dict((k, v) for k, v in dict_log.items() if k in whiteList)
+    dict_result = dict((k, v) for k, v in dict_log.items() if k in white_list)
     dict_result['hs'] = [0 if x is None else round(x / units, 2) for x in dict_result['hs']]
 
     return dict_result
