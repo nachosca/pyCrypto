@@ -7,6 +7,7 @@ with open("secrets.txt", encoding="UTF-8") as filedata:
     data = eval(filedata.read())
 
 runFutures = 0
+futuresDate = '220624'
 
 
 def start(update: Update, context: CallbackContext) -> None:
@@ -67,6 +68,8 @@ def help(update: Update, context: CallbackContext):
         txt += '/stopFuturesAuto - para el robot del rendimiento'
         txt += chr(10)
         txt += '/stopFuturesAuto - checkea el estado del robot del rendimiento'
+        txt += chr(10)
+        txt += '/updateFuturesDate - updatea la fecha de futuros'
         context.bot.send_message(chat_id=data["chatNacho"], text=txt)
 
 
@@ -136,6 +139,15 @@ def send_message():
     params = {"chat_id": data["chatNacho"], "text": "Bot has just Started"}
     requests.get(url, params=params)
 
+def update_futures_date(update: Update, context: CallbackContext):
+    if update.effective_chat.id in [data["chatNacho"]]:
+        try:
+            global futuresDate
+            futuresDate = str(context.args[0])
+            context.bot.send_message(chat_id=data["chatNacho"], text="Fecha actualizada a: " + str(futuresDate))
+        except:
+            context.bot.send_message(chat_id=data["chatNacho"], text="Error en parámetro.")
+
 
 
 def main():
@@ -154,6 +166,7 @@ def main():
     dispatcher.add_handler(CommandHandler("checkFuturesAuto", check_futures_auto))
     dispatcher.add_handler(CommandHandler("getIp", get_ip))
     dispatcher.add_handler(CommandHandler("help", help))
+    dispatcher.add_handler(CommandHandler("updateFuturesDate", update_futures_date))
 
     # Start the Bot
     updater.start_polling()
@@ -167,9 +180,8 @@ def main():
 
 
 def check_futures():
-    name = '220325'
     lst = json.loads(requests.get('https://dapi.binance.com/dapi/v1/premiumIndex').content)
-    lst = [d for d in lst if name in d['symbol']]
+    lst = [d for d in lst if futuresDate in d['symbol']]
 
     result = []
     for i in lst:

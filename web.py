@@ -7,7 +7,7 @@ import json
 app = fastapi.FastAPI()
 
 @app.get("/futures-convenience")
-def index(name: str = '220325'):
+def index(name: str = '220624'):
 
     lst = json.loads(requests.get('https://dapi.binance.com/dapi/v1/premiumIndex').content)
     lst = [d for d in lst if name in d['symbol']]
