@@ -67,7 +67,7 @@ def help(update: Update, context: CallbackContext):
         txt += chr(10)
         txt += '/stopFuturesAuto - para el robot del rendimiento'
         txt += chr(10)
-        txt += '/stopFuturesAuto - checkea el estado del robot del rendimiento'
+        txt += '/checkFuturesAuto - checkea el estado del robot del rendimiento'
         txt += chr(10)
         txt += '/updateFuturesDate - updatea la fecha de futuros'
         context.bot.send_message(chat_id=data["chatNacho"], text=txt)
