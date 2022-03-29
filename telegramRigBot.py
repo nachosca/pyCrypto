@@ -107,7 +107,6 @@ def start_check_rig(update: Update, context: CallbackContext):
         if runCheck is False:
             runCheck = True
             context.job_queue.run_repeating(check_bot, interval=300.0, first=0.0)
-            context.job_queue.run_repeating(check_wifi, interval=300.0, first=0.0)
             context.bot.send_message(chat_id=data["chatId"],
                                      text='CheckRig: ' + str(runCheck) + ' comenzó ejecución de check rig')
 
@@ -146,6 +145,7 @@ def self_update(update: Update, context: CallbackContext):
 
 def check_bot(context: CallbackContext):
     if runCheck is True:
+        check_wifi()
         try:
             global gpus
 
