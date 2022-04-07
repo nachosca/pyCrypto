@@ -9,6 +9,8 @@ import statistics
 runCheck = False
 percentageAccepted = 0.1
 gpus = 0
+consecutiveErrors = 0
+autoRestart = False
 
 with open("/home/user/python/secrets.txt", encoding="UTF-8") as filedata:
     data = eval(filedata.read())
@@ -67,11 +69,15 @@ def check_wifi():
 
 def reboot(update: Update, context: CallbackContext):
     if update.effective_chat.id in [int(data["chatId"])]:
-        cmd = 'sudo reboot'
-        context.bot.send_message(chat_id=context._chat_id_and_data[0], text='Rebooting...')
-        subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        reboot_rig(context)
     else:
         update.message.reply_text('Tomatela gato.')
+
+
+def reboot_rig(context):
+    cmd = 'sudo reboot'
+    context.bot.send_message(chat_id=context._chat_id_and_data[0], text='Rebooting...')
+    subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 
 def miner_restart(update: Update, context: CallbackContext):
@@ -146,6 +152,7 @@ def self_update(update: Update, context: CallbackContext):
 def check_bot(context: CallbackContext):
     if runCheck is True:
         check_wifi()
+        global consecutiveErrors
         try:
             global gpus
 
@@ -163,10 +170,14 @@ def check_bot(context: CallbackContext):
             for i in dict_result['hs']:
                 if (harmonic_mean / i - 1) > float(percentageAccepted):
                     context.bot.send_message(chat_id=data["chatId"], text=json.dumps(dict_result, sort_keys=True, indent=4).replace('\n', chr(10)))
-                    context.bot.send_message(chat_id=data["chatId"], text=txt_problem())
-                    break
+                    raise Exception()
         except:
+            consecutiveErrors += 1
             context.bot.send_message(chat_id=data["chatId"], text=txt_problem())
+
+        if consecutiveErrors > 5:
+            reboot_rig(context)
+
 
 def update_percentage_check(update: Update, context: CallbackContext):
     if update.effective_chat.id in [int(data["chatId"])]:
