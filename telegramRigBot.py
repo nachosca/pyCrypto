@@ -120,10 +120,11 @@ def start_check_rig(update: Update, context: CallbackContext):
 def stop_check_rig(update: Update, context: CallbackContext):
     if update.effective_chat.id in [int(data["chatId"])]:
         global runCheck
-        runCheck = False
-        context.job_queue.stop()
-        context.bot.send_message(chat_id=data["chatId"],
-                                 text='CheckRig: ' + str(runCheck) + ' se paró la ejecución de check rig')
+        if runCheck is True:
+            runCheck = False
+            context.job_queue.stop()
+            context.bot.send_message(chat_id=data["chatId"],
+                                     text='CheckRig: ' + str(runCheck) + ' se paró la ejecución de check rig')
 
 
 def get_rig_stats(update: Update, context: CallbackContext):
@@ -171,12 +172,14 @@ def check_bot(context: CallbackContext):
                 if (harmonic_mean / i - 1) > float(percentageAccepted):
                     context.bot.send_message(chat_id=data["chatId"], text=json.dumps(dict_result, sort_keys=True, indent=4).replace('\n', chr(10)))
                     raise Exception()
+
+            consecutiveErrors = 0
         except:
             consecutiveErrors += 1
             context.bot.send_message(chat_id=data["chatId"], text=txt_problem())
-
-        if consecutiveErrors > 5:
-            reboot_rig(context)
+        finally:
+            if consecutiveErrors > 5:
+                reboot_rig(context)
 
 
 def update_percentage_check(update: Update, context: CallbackContext):
