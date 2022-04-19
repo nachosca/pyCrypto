@@ -20,8 +20,9 @@ try:
     options.add_argument("--disable-browser-side-navigation")
     options.add_argument("--disable-gpu")
 
-    driver_path = "/usr/lib/chromium-browser/chromedriver"
-    driver = webdriver.Chrome(service=Service(driver_path), options=options)
+    #driver_path = "/usr/lib/chromium-browser/chromedriver"
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+    #driver = webdriver.Chrome(service=Service(driver_path), options=options)
 
     driver.get("https://hiveon.net")
     page = driver.page_source
@@ -31,7 +32,7 @@ try:
 
     datem = datetime.datetime.utcnow()
 
-    data = datem.strftime("%D")
+    data = datem.strftime("%d/%m/%y")
     for t in txt:
         data += ';'+ t
 

@@ -151,9 +151,9 @@ def self_update(update: Update, context: CallbackContext):
 
 
 def check_bot(context: CallbackContext):
-    if runCheck is True:
+    global consecutiveErrors
+    if runCheck:
         check_wifi()
-        global consecutiveErrors
         try:
             global gpus
 
@@ -175,9 +175,11 @@ def check_bot(context: CallbackContext):
 
             consecutiveErrors = 0
         except:
+            context.bot.send_message(chat_id=data["chatId"], text=f'Except: {consecutiveErrors}')
             consecutiveErrors += 1
             context.bot.send_message(chat_id=data["chatId"], text=txt_problem())
         finally:
+            context.bot.send_message(chat_id=data["chatId"], text=f'Finally: {consecutiveErrors}')
             if consecutiveErrors > 5:
                 reboot_rig(context)
 
