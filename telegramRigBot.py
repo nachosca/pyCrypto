@@ -48,7 +48,7 @@ def help(update: Update, context: CallbackContext):
         txt += '/selfUpdate - bot self update'
         txt += chr(10)
         txt += '/updatePercentageCheck [Float, < 0.2, default 0.1] - updates percentage to show GPU alerts'
-        context.bot.send_message(chat_id=context._chat_id_and_data[0], text=txt)
+        context.bot.send_message(chat_id=data["chatId"], text=txt)
 
 
 def get_ip(update: Update, context: CallbackContext):
@@ -76,7 +76,7 @@ def reboot(update: Update, context: CallbackContext):
 
 def reboot_rig(context):
     cmd = 'sudo reboot'
-    context.bot.send_message(chat_id=context._chat_id_and_data[0], text='Rebooting...')
+    context.bot.send_message(chat_id=data["chatId"], text='Rebooting...')
     subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 
@@ -84,7 +84,7 @@ def miner_restart(update: Update, context: CallbackContext):
     if update.effective_chat.id in [int(data["chatId"])]:
         cmd = 'miner restart'
         subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        context.bot.send_message(chat_id=context._chat_id_and_data[0], text='Restarting miner...')
+        context.bot.send_message(chat_id=data["chatId"], text='Restarting miner...')
     else:
         update.message.reply_text('Tomatela gato.')
 
@@ -93,7 +93,7 @@ def miner_stop(update: Update, context: CallbackContext):
     if update.effective_chat.id in [int(data["chatId"])]:
         cmd = 'miner stop'
         subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        context.bot.send_message(chat_id=context._chat_id_and_data[0], text='Stopping miner...')
+        context.bot.send_message(chat_id=data["chatId"], text='Stopping miner...')
     else:
         update.message.reply_text('Tomatela gato.')
 
@@ -102,7 +102,7 @@ def miner_start(update: Update, context: CallbackContext):
     if update.effective_chat.id in [int(data["chatId"])]:
         cmd = 'miner start'
         subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        context.bot.send_message(chat_id=context._chat_id_and_data[0], text='Starting miner...')
+        context.bot.send_message(chat_id=data["chatId"], text='Starting miner...')
     else:
         update.message.reply_text('Tomatela gato.')
 
@@ -179,7 +179,6 @@ def check_bot(context: CallbackContext):
             consecutiveErrors += 1
             context.bot.send_message(chat_id=data["chatId"], text=txt_problem())
         finally:
-            context.bot.send_message(chat_id=data["chatId"], text=f'Finally: {consecutiveErrors}')
             if consecutiveErrors > 5:
                 reboot_rig(context)
 
