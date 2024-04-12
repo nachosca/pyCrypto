@@ -3,15 +3,11 @@ from telegram.ext import Updater, CommandHandler, CallbackContext
 import requests
 import json
 
-with open("/home/pi/secrets.txt", encoding="UTF-8") as filedata:
+with open("secrets.txt", encoding="UTF-8") as filedata:
     data = eval(filedata.read())
 
 runFutures = 0
-runInFutures = 0
-futuresDate = '240628'
-futuresCheckData = [] # LINKUSD_240628,XRPUSD_240628
-futuresCheckUp = 4.0
-futuresCheckDown = 0.0
+futuresDate = '220624'
 
 
 def start(update: Update, context: CallbackContext) -> None:
@@ -65,25 +61,17 @@ def help(update: Update, context: CallbackContext):
         txt += chr(10)
         txt += '/start - cómo funciona'
         txt += chr(10)
-        txt += '/futures - cuánto están rindiendo'
+        txt += '/statusP - está levantado earnapp?'
         txt += chr(10)
-        txt += '/startFuturesAuto - empieza el robot del rendimiento'
+        txt += '/startP - levanta earnapp'
         txt += chr(10)
-        txt += '/stopFuturesAuto - para el robot del rendimiento'
+        txt += '/stopP - para earnapp'
         txt += chr(10)
-        txt += '/checkData - checkea el estado del robot del rendimiento'
+        txt += '/statusP2P - está levantado peer2profit?'
         txt += chr(10)
-        txt += '/updateFuturesDate - updatea la fecha de futuros EJ: 240628'
+        txt += '/startP2P - levanta peer2profit'
         txt += chr(10)
-        txt += '/updateFuturesCheckData - updatea los futuros a checkear EJ: LINKUSD_240628,XRPUSD_240628'
-        txt += chr(10)
-        txt += '/updateFuturesCheckUp - updatea el % de los futuros a checkear en alza'
-        txt += chr(10)
-        txt += '/updateFuturesCheckDown - updatea el % de los futuros a checkear en baja'
-        txt += chr(10)
-        txt += '/startInFuturesAuto - empieza el robot del rendimiento'
-        txt += chr(10)
-        txt += '/stopInFuturesAuto - para el robot del rendimiento'
+        txt += '/stopP2P - para peer2profit'
         context.bot.send_message(chat_id=data["chatNacho"], text=txt)
 
 
@@ -95,40 +83,20 @@ def stop_futures_auto(update: Update, context: CallbackContext):
         context.bot.send_message(chat_id=data["chatNacho"],
                                  text='Runfutures: ' + str(runFutures) + ' se paró la ejecución de futuros')
 
-def stop_in_futures_auto(update: Update, context: CallbackContext):
-    if update.effective_chat.id in [data["chatNacho"]]:
-        global runInFutures
-        runInFutures = 0
-        context.job_queue.stop()
-        context.bot.send_message(chat_id=data["chatNacho"],
-                                 text='RunInfutures: ' + str(runFutures) + ' se paró la ejecución de in futuros')
-
 
 def start_futures_auto(update: Update, context: CallbackContext):
     if update.effective_chat.id in [data["chatNacho"]]:
         global runFutures
         runFutures = 1
-        context.job_queue.run_repeating(futures_auto, interval=86400.0, first=1.0)
+        context.job_queue.run_repeating(futures_auto, interval=1800.0, first=0.0)
         context.bot.send_message(chat_id=data["chatNacho"],
                                  text='Runfutures: ' + str(runFutures) + ' comenzó ejecución de futuros')
 
-def start_in_futures_auto(update: Update, context: CallbackContext):
+
+def check_futures_auto(update: Update, context: CallbackContext):
     if update.effective_chat.id in [data["chatNacho"]]:
-        global runInFutures
-        runInFutures = 1
-        context.job_queue.run_repeating(in_futures_auto, interval=60.0, first=1.0)
         context.bot.send_message(chat_id=data["chatNacho"],
-                                 text='RunInfutures: ' + str(runInFutures) + ' comenzó ejecución de in futuros')
-
-
-def check_data(update: Update, context: CallbackContext):
-    if update.effective_chat.id in [data["chatNacho"]]:
-        context.bot.send_message(chat_id=data["chatNacho"], text='RunFutures: ' + str(runFutures))
-        context.bot.send_message(chat_id=data["chatNacho"], text='RunInFutures: ' + str(runInFutures))
-        context.bot.send_message(chat_id=data["chatNacho"], text='futuresDate: ' + str(futuresDate))
-        context.bot.send_message(chat_id=data["chatNacho"], text='futuresCheckData: ' + str(futuresCheckData))
-        context.bot.send_message(chat_id=data["chatNacho"], text='futuresCheckUp: ' + str(futuresCheckUp))
-        context.bot.send_message(chat_id=data["chatNacho"], text='futuresCheckDown: ' + str(futuresCheckDown))
+                                 text='Runfutures: ' + str(runFutures))
 
 
 def get_ip(update: Update, context: CallbackContext):
@@ -146,26 +114,10 @@ def futures_auto(context: CallbackContext):
             resultText += json.dumps(i)
             resultText += chr(10)
 
-        if result[0].get('percentage') > futuresCheckUp:
+        if result[0].get('percentage') > 3.5:
             context.bot.send_message(chat_id=data["chatChannel"],
                                      text="Encontré buen rendimiento de futuros en Binance!")
             context.bot.send_message(chat_id=data["chatChannel"], text=resultText)
-
-def in_futures_auto(context: CallbackContext):
-    if runInFutures == 1:
-        for symbol in futuresCheckData:
-            result = check_futures(symbol)
-            result_text = ""
-
-            for i in result:
-                result_text += json.dumps(i)
-                result_text += chr(10)
-
-            if result[0].get('percentage') < futuresCheckDown:
-                context.bot.send_message(chat_id=data["chatNacho"],
-                                         text="Seguí el precio. ojota")
-                context.bot.send_message(chat_id=data["chatNacho"], text=result_text)
-
 
 
 def futures(update: Update, context: CallbackContext):
@@ -184,11 +136,10 @@ def futures(update: Update, context: CallbackContext):
         update.message.reply_text('Tomatela gato.')
 
 
-def send_message(message):
+def send_message():
     url = f"https://api.telegram.org/bot{data['botToken']}/sendMessage"
-    params = {"chat_id": data["chatNacho"], "text": message}
+    params = {"chat_id": data["chatNacho"], "text": "Bot has just Started"}
     requests.get(url, params=params)
-
 
 def update_futures_date(update: Update, context: CallbackContext):
     if update.effective_chat.id in [data["chatNacho"]]:
@@ -197,37 +148,6 @@ def update_futures_date(update: Update, context: CallbackContext):
             futuresDate = str(context.args[0])
             context.bot.send_message(chat_id=data["chatNacho"], text="Fecha actualizada a: " + str(futuresDate))
         except:
-            context.bot.send_message(chat_id=data["chatNacho"], text="Error en parámetro.")
-
-
-def update_futures_check_up(update: Update, context: CallbackContext):
-    if update.effective_chat.id in [data["chatNacho"]]:
-        try:
-            global futuresCheckUp
-            futuresCheckUp = float(context.args[0])
-            context.bot.send_message(chat_id=data["chatNacho"], text="Futures Check Up: " + str(futuresCheckUp))
-        except:
-            context.bot.send_message(chat_id=data["chatNacho"], text="Error en parámetro.")
-
-
-def update_futures_check_down(update: Update, context: CallbackContext):
-    if update.effective_chat.id in [data["chatNacho"]]:
-        try:
-            global futuresCheckDown
-            futuresCheckDown = float(context.args[0])
-            context.bot.send_message(chat_id=data["chatNacho"], text="Futures Check Down: " + str(futuresCheckDown))
-        except:
-            context.bot.send_message(chat_id=data["chatNacho"], text="Error en parámetro.")
-
-
-def update_futures_check_data(update: Update, context: CallbackContext):
-    if update.effective_chat.id in [data["chatNacho"]]:
-        try:
-            global futuresCheckData
-            futuresCheckData = context.args[0].split(',')
-            context.bot.send_message(chat_id=data["chatNacho"], text="futuresCheckData parametros actualizados a: " + str(futuresCheckData))
-        except:
-            futuresCheckData = []
             context.bot.send_message(chat_id=data["chatNacho"], text="Error en parámetro.")
 
 
@@ -245,20 +165,15 @@ def main():
     dispatcher.add_handler(CommandHandler("futures", futures))
     dispatcher.add_handler(CommandHandler("startFuturesAuto", start_futures_auto))
     dispatcher.add_handler(CommandHandler("stopFuturesAuto", stop_futures_auto))
-    dispatcher.add_handler(CommandHandler("checkData", check_data))
+    dispatcher.add_handler(CommandHandler("checkFuturesAuto", check_futures_auto))
     dispatcher.add_handler(CommandHandler("getIp", get_ip))
     dispatcher.add_handler(CommandHandler("help", help))
     dispatcher.add_handler(CommandHandler("updateFuturesDate", update_futures_date))
-    dispatcher.add_handler(CommandHandler("updateFuturesCheckData", update_futures_check_data))
-    dispatcher.add_handler(CommandHandler("updateFuturesCheckUp", update_futures_check_up))
-    dispatcher.add_handler(CommandHandler("updateFuturesCheckDown", update_futures_check_down))
-    dispatcher.add_handler(CommandHandler("startInFuturesAuto", start_in_futures_auto))
-    dispatcher.add_handler(CommandHandler("stopInFuturesAuto", stop_in_futures_auto))
 
     # Start the Bot
     updater.start_polling()
 
-    send_message("Bot has just Started")
+    send_message()
 
     # Block until you press Ctrl-C or the process receives SIGINT, SIGTERM or
     # SIGABRT. This should be used most of the time, since start_polling() is
@@ -266,13 +181,8 @@ def main():
     updater.idle()
 
 
-def check_futures(symbol=None):
-    url = 'https://dapi.binance.com/dapi/v1/premiumIndex'
-    # If symbol is provided, add it as a query parameter
-    if symbol:
-        url += f'?symbol={symbol}'
-
-    lst = json.loads(requests.get(url).content)
+def check_futures():
+    lst = json.loads(requests.get('https://dapi.binance.com/dapi/v1/premiumIndex').content)
     lst = [d for d in lst if futuresDate in d['symbol']]
 
     result = []
