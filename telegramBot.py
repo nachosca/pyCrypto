@@ -13,6 +13,7 @@ futuresCheckData = [] # LINKUSD_240628,XRPUSD_240628
 futuresCheckUp = 4.0
 futuresCheckDown = 0.0
 futuresGeneralCheckDown = -5.0
+futuresGeneralCheckUp = 8
 
 
 def start(update: Update, context: CallbackContext) -> None:
@@ -84,6 +85,8 @@ def help(update: Update, context: CallbackContext):
         txt += chr(10)
         txt += '/updateFuturesGeneralCheckDown - updatea el % de los futuros generales a checkear en baja'
         txt += chr(10)
+        txt += '/updateFuturesGeneralCheckUp - updatea el % de los futuros generales a checkear en alza'
+        txt += chr(10)
         txt += '/startInFuturesAuto - empieza el robot del rendimiento'
         txt += chr(10)
         txt += '/stopInFuturesAuto - para el robot del rendimiento'
@@ -133,6 +136,7 @@ def check_data(update: Update, context: CallbackContext):
         context.bot.send_message(chat_id=data["chatNacho"], text='futuresCheckUp: ' + str(futuresCheckUp))
         context.bot.send_message(chat_id=data["chatNacho"], text='futuresCheckDown: ' + str(futuresCheckDown))
         context.bot.send_message(chat_id=data["chatNacho"], text='futuresGeneralCheckDown: ' + str(futuresGeneralCheckDown))
+        context.bot.send_message(chat_id=data["chatNacho"], text='futuresGeneralCheckUp: ' + str(futuresGeneralCheckUp))
 
 
 def get_ip(update: Update, context: CallbackContext):
@@ -180,6 +184,11 @@ def in_futures_auto(context: CallbackContext):
             result_text += chr(10)
 
         if result[-1].get('percentage') < futuresGeneralCheckDown:
+            context.bot.send_message(chat_id=data["chatNacho"],
+                                     text="Seguí el precio. ojota")
+            context.bot.send_message(chat_id=data["chatNacho"], text=result_text)
+
+        if result[1].get('percentage') > futuresGeneralCheckUp:
             context.bot.send_message(chat_id=data["chatNacho"],
                                      text="Seguí el precio. ojota")
             context.bot.send_message(chat_id=data["chatNacho"], text=result_text)
@@ -246,6 +255,15 @@ def update_futures_general_check_down(update: Update, context: CallbackContext):
         except:
             context.bot.send_message(chat_id=data["chatNacho"], text="Error en parámetro.")
 
+def update_futures_general_check_up(update: Update, context: CallbackContext):
+    if update.effective_chat.id in [data["chatNacho"]]:
+        try:
+            global futuresGeneralCheckUp
+            futuresGeneralCheckUp = float(context.args[0])
+            context.bot.send_message(chat_id=data["chatNacho"], text="Futures Check Down: " + str(futuresGeneralCheckUp))
+        except:
+            context.bot.send_message(chat_id=data["chatNacho"], text="Error en parámetro.")
+
 
 def update_futures_check_data(update: Update, context: CallbackContext):
     if update.effective_chat.id in [data["chatNacho"]]:
@@ -280,6 +298,7 @@ def main():
     dispatcher.add_handler(CommandHandler("updateFuturesCheckUp", update_futures_check_up))
     dispatcher.add_handler(CommandHandler("updateFuturesCheckDown", update_futures_check_down))
     dispatcher.add_handler(CommandHandler("updateFuturesGeneralCheckDown", update_futures_general_check_down))
+    dispatcher.add_handler(CommandHandler("updateFuturesGeneralCheckUp", update_futures_general_check_up))
     dispatcher.add_handler(CommandHandler("startInFuturesAuto", start_in_futures_auto))
     dispatcher.add_handler(CommandHandler("stopInFuturesAuto", stop_in_futures_auto))
 
