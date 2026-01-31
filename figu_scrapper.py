@@ -1,5 +1,5 @@
 from telegram import Update
-from telegram.ext import Updater, CommandHandler, CallbackContext
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -14,7 +14,7 @@ with open("/home/pi/secrets.txt", encoding="UTF-8") as filedata:
 runScrapper = 0
 
 
-def help(update: Update, context: CallbackContext):
+async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.id in [data["chatNacho"]]:
         """Sends explanation on how to use the bot."""
         txt = '/getIp - devuelve el ip del host'
@@ -24,36 +24,36 @@ def help(update: Update, context: CallbackContext):
         txt += '/stopScrapper - para el scrapper de figus'
 
 
-        context.bot.send_message(chat_id=data["chatNacho"], text=txt)
+        await context.bot.send_message(chat_id=data["chatNacho"], text=txt)
 
 
-def stop_scrapper_auto(update: Update, context: CallbackContext):
+async def stop_scrapper_auto(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.id in [data["chatNacho"]]:
         global runScrapper
         runScrapper = 0
-        context.job_queue.stop()
-        context.bot.send_message(chat_id=data["chatNacho"],
-                                 text='Runfutures: ' + str(runScrapper) + ' se paró la ejecución de futuros')
+        await context.job_queue.stop()
+        await context.bot.send_message(chat_id=data["chatNacho"],
+                                       text='Runfutures: ' + str(runScrapper) + ' se paró la ejecución de futuros')
 
 
 
-def start_scrapper_auto(update: Update, context: CallbackContext):
+async def start_scrapper_auto(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.id in [data["chatNacho"]]:
         global runScrapper
         runScrapper = 1
         context.job_queue.run_repeating(scrapper_auto, interval=90.0, first=0.0)
-        context.bot.send_message(chat_id=data["chatNacho"],
-                                 text='Runfutures: ' + str(runScrapper) + ' comenzó ejecución de scrapper')
+        await context.bot.send_message(chat_id=data["chatNacho"],
+                                       text='Runfutures: ' + str(runScrapper) + ' comenzó ejecución de scrapper')
 
 
-def get_ip(update: Update, context: CallbackContext):
+async def get_ip(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.id in [data["chatNacho"]]:
         ip = requests.get('https://api.ipify.org').content.decode('utf8')
-        context.bot.send_message(chat_id=data["chatNacho"], text=ip)
+        await context.bot.send_message(chat_id=data["chatNacho"], text=ip)
 
 
 
-def scrapper_auto(context: CallbackContext):
+async def scrapper_auto(context: ContextTypes.DEFAULT_TYPE):
     if runScrapper == 1:
         try:
             options = Options()
@@ -83,30 +83,30 @@ def scrapper_auto(context: CallbackContext):
             if "Sin stock" in txt and "display: none" in txt2:
                 print('No hay stock ' + dt)
             else:
-                context.bot.send_message(chat_id=data["chatNacho"],
-                                         text="Hay Stock de album!! https://www.zonakids.com/productos/pack-promo-1-album-tapa-dura-100-sobres-de-figuritas-fifa-world-cup-qatar-2022/")
+                await context.bot.send_message(chat_id=data["chatNacho"],
+                                               text="Hay Stock de album!! https://www.zonakids.com/productos/pack-promo-1-album-tapa-dura-100-sobres-de-figuritas-fifa-world-cup-qatar-2022/")
 
         except Exception as e:
-            context.bot.send_message(chat_id=data["chatNacho"],
-                                         text="Por las dudas checkea!! https://www.zonakids.com/productos/pack-promo-1-album-tapa-dura-100-sobres-de-figuritas-fifa-world-cup-qatar-2022/")
+            await context.bot.send_message(chat_id=data["chatNacho"],
+                                           text="Por las dudas checkea!! https://www.zonakids.com/productos/pack-promo-1-album-tapa-dura-100-sobres-de-figuritas-fifa-world-cup-qatar-2022/")
             print("error trayendo datos. " + dt)
             print(e)
 
         try:
-          driver.get("https://www.zonakids.com/productos/pack-x-25-sobres-de-figuritas-fifa-world-cup-qatar-2022/")
-          page = driver.page_source
-          soup = BeautifulSoup(''.join(page), 'html.parser').body
-          txt = str(soup.find_all("input", {"class": "btn btn-primary full-width js-prod-submit-form js-addtocart nostock m-bottom-half"})[0])
-          txt2 = str(soup.find_all("div", {"class": "js-addtocart js-addtocart-placeholder btn btn-primary full-width btn-transition m-bottom-half disabled"})[0])
+            driver.get("https://www.zonakids.com/productos/pack-x-25-sobres-de-figuritas-fifa-world-cup-qatar-2022/")
+            page = driver.page_source
+            soup = BeautifulSoup(''.join(page), 'html.parser').body
+            txt = str(soup.find_all("input", {"class": "btn btn-primary full-width js-prod-submit-form js-addtocart nostock m-bottom-half"})[0])
+            txt2 = str(soup.find_all("div", {"class": "js-addtocart js-addtocart-placeholder btn btn-primary full-width btn-transition m-bottom-half disabled"})[0])
 
-          if "Sin stock" in txt and "display: none" in txt2:
-              print('No hay stock ' + dt)
-          else:
-              context.bot.send_message(chat_id=data["chatNacho"],
-                                       text="Hay Stock de figus!! https://www.zonakids.com/productos/pack-x-25-sobres-de-figuritas-fifa-world-cup-qatar-2022/")
+            if "Sin stock" in txt and "display: none" in txt2:
+                print('No hay stock ' + dt)
+            else:
+                await context.bot.send_message(chat_id=data["chatNacho"],
+                                               text="Hay Stock de figus!! https://www.zonakids.com/productos/pack-x-25-sobres-de-figuritas-fifa-world-cup-qatar-2022/")
         except Exception as e:
-            context.bot.send_message(chat_id=data["chatNacho"],
-                                         text="Por las dudas checkea!! https://www.zonakids.com/productos/pack-x-25-sobres-de-figuritas-fifa-world-cup-qatar-2022//")
+            await context.bot.send_message(chat_id=data["chatNacho"],
+                                           text="Por las dudas checkea!! https://www.zonakids.com/productos/pack-x-25-sobres-de-figuritas-fifa-world-cup-qatar-2022//")
             print("error trayendo datos. " + dt)
             print(e)
 
@@ -121,27 +121,19 @@ def send_message(message):
 def main():
     """Run bot."""
     # Create the Updater and pass it your bot's token.
-    updater = Updater(data["botToken"])
-
-    # Get the dispatcher to register handlers
-    dispatcher = updater.dispatcher
+    application = ApplicationBuilder().token(data["botToken"]).build()
 
     # on different commands - answer in Telegram
-    dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(CommandHandler("getIp", get_ip))
-    dispatcher.add_handler(CommandHandler("help", help))
-    dispatcher.add_handler(CommandHandler("startScrapper", start_scrapper_auto))
-    dispatcher.add_handler(CommandHandler("stopScrapper", start_scrapper_auto))
-
-    # Start the Bot
-    updater.start_polling()
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("getIp", get_ip))
+    application.add_handler(CommandHandler("help", help))
+    application.add_handler(CommandHandler("startScrapper", start_scrapper_auto))
+    application.add_handler(CommandHandler("stopScrapper", stop_scrapper_auto))
 
     send_message("Fugu Scrapper Bot has just Started")
 
-    # Block until you press Ctrl-C or the process receives SIGINT, SIGTERM or
-    # SIGABRT. This should be used most of the time, since start_polling() is
-    # non-blocking and will stop the bot gracefully.
-    updater.idle()
+    # Start the Bot
+    application.run_polling()
 
 
 

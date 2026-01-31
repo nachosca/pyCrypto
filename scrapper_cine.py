@@ -1,5 +1,5 @@
 from telegram import Update
-from telegram.ext import Updater, CommandHandler, CallbackContext
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -20,7 +20,7 @@ movie = "deadpool"
 cinema = "18"
 
 
-def help(update: Update, context: CallbackContext):
+async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.id in [data["chatNacho"]]:
         """Sends explanation on how to use the bot."""
         txt = '/getIp - devuelve el ip del host'
@@ -34,54 +34,54 @@ def help(update: Update, context: CallbackContext):
         txt += '/updateCinema - actualiza el cine a buscar'
 
 
-        context.bot.send_message(chat_id=data["chatNacho"], text=txt)
+        await context.bot.send_message(chat_id=data["chatNacho"], text=txt)
 
 
-def stop_scrapper_auto(update: Update, context: CallbackContext):
+async def stop_scrapper_auto(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.id in [data["chatNacho"]]:
         global runScrapper
         runScrapper = 0
-        context.job_queue.stop()
-        context.bot.send_message(chat_id=data["chatNacho"],
-                                 text='RunScrapper: ' + str(runScrapper) + ' se paró la ejecución de scrapper')
+        await context.job_queue.stop()
+        await context.bot.send_message(chat_id=data["chatNacho"],
+                                       text='RunScrapper: ' + str(runScrapper) + ' se paró la ejecución de scrapper')
 
 
 
-def start_scrapper_auto(update: Update, context: CallbackContext):
+async def start_scrapper_auto(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.id in [data["chatNacho"]]:
         global runScrapper
         runScrapper = 1
         context.job_queue.run_repeating(scrapper_auto, interval=60.0, first=0.0)
-        context.bot.send_message(chat_id=data["chatNacho"],
-                                 text='RunScrapper: ' + str(runScrapper) + ' comenzó ejecución de scrapper')
+        await context.bot.send_message(chat_id=data["chatNacho"],
+                                       text='RunScrapper: ' + str(runScrapper) + ' comenzó ejecución de scrapper')
 
-def update_movie(update: Update, context: CallbackContext):
+async def update_movie(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.id in [data["chatNacho"]]:
         try:
             global movie
             movie = str(context.args[0]).lower()
-            context.bot.send_message(chat_id=data["chatNacho"], text="movie actualizada a: " + str(movie))
+            await context.bot.send_message(chat_id=data["chatNacho"], text="movie actualizada a: " + str(movie))
         except:
-            context.bot.send_message(chat_id=data["chatNacho"], text="Error en parámetro.")
+            await context.bot.send_message(chat_id=data["chatNacho"], text="Error en parámetro.")
 
-def update_cinema(update: Update, context: CallbackContext):
+async def update_cinema(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.id in [data["chatNacho"]]:
         try:
             global cinema
             cinema = str(context.args[0]).lower()
-            context.bot.send_message(chat_id=data["chatNacho"], text="cinema actualizada a: " + str(cinema))
+            await context.bot.send_message(chat_id=data["chatNacho"], text="cinema actualizada a: " + str(cinema))
         except:
-            context.bot.send_message(chat_id=data["chatNacho"], text="Error en parámetro.")
+            await context.bot.send_message(chat_id=data["chatNacho"], text="Error en parámetro.")
 
 
-def get_ip(update: Update, context: CallbackContext):
+async def get_ip(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.id in [data["chatNacho"]]:
         ip = requests.get('https://api.ipify.org').content.decode('utf8')
-        context.bot.send_message(chat_id=data["chatNacho"], text=ip)
+        await context.bot.send_message(chat_id=data["chatNacho"], text=ip)
 
 
 
-def scrapper_auto(context: CallbackContext):
+async def scrapper_auto(context: ContextTypes.DEFAULT_TYPE):
     if runScrapper == 1:
         try:
             options = Options()
@@ -124,7 +124,7 @@ def scrapper_auto(context: CallbackContext):
             if movie_found:
                 print(f"{movie_title} is on the list.")
                 result = f"Hay entradas para {movie_title} https://entradas.todoshowcase.com/showcase/boleteria.aspx"
-                context.bot.send_message(chat_id=data["chatPibes"], text=result)
+                await context.bot.send_message(chat_id=data["chatPibes"], text=result)
 
             # Close the WebDriver
             driver.quit()
@@ -146,28 +146,20 @@ def send_message(message):
 def main():
     """Run bot."""
     # Create the Updater and pass it your bot's token.
-    updater = Updater(data["botToken2"])
-
-    # Get the dispatcher to register handlers
-    dispatcher = updater.dispatcher
+    application = ApplicationBuilder().token(data["botToken2"]).build()
 
     # on different commands - answer in Telegram
-    dispatcher.add_handler(CommandHandler("getIp", get_ip))
-    dispatcher.add_handler(CommandHandler("help", help))
-    dispatcher.add_handler(CommandHandler("startScrapper", start_scrapper_auto))
-    dispatcher.add_handler(CommandHandler("stopScrapper", stop_scrapper_auto))
-    dispatcher.add_handler(CommandHandler("updateMovie", update_movie))
-    dispatcher.add_handler(CommandHandler("updateCinema", update_cinema))
-
-    # Start the Bot
-    updater.start_polling()
+    application.add_handler(CommandHandler("getIp", get_ip))
+    application.add_handler(CommandHandler("help", help))
+    application.add_handler(CommandHandler("startScrapper", start_scrapper_auto))
+    application.add_handler(CommandHandler("stopScrapper", stop_scrapper_auto))
+    application.add_handler(CommandHandler("updateMovie", update_movie))
+    application.add_handler(CommandHandler("updateCinema", update_cinema))
 
     send_message("Movie Scrapper Bot has just Started")
 
-    # Block until you press Ctrl-C or the process receives SIGINT, SIGTERM or
-    # SIGABRT. This should be used most of the time, since start_polling() is
-    # non-blocking and will stop the bot gracefully.
-    updater.idle()
+    # Start the Bot
+    application.run_polling()
 
 
 

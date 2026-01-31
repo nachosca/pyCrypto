@@ -1,5 +1,5 @@
 from telegram import Update
-from telegram.ext import Updater, CommandHandler, CallbackContext
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 import requests
 import subprocess
 import json
@@ -16,15 +16,15 @@ with open("/home/user/python/secrets.txt", encoding="UTF-8") as filedata:
     data = eval(filedata.read())
 
 
-def start(update: Update, context: CallbackContext) -> None:
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Sends explanation on how to use the bot."""
     txt = 'Useless bot'
 
-    update.message.reply_text(txt)
-    update.message.reply_text(update.effective_chat.id)
+    await update.message.reply_text(txt)
+    await update.message.reply_text(update.effective_chat.id)
 
 
-def help(update: Update, context: CallbackContext):
+async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.id in [int(data["chatId"])]:
         """Sends explanation on how to use the bot Rig Nacho."""
         txt = '/getIp - devuelve el ip del host'
@@ -48,13 +48,13 @@ def help(update: Update, context: CallbackContext):
         txt += '/selfUpdate - bot self update'
         txt += chr(10)
         txt += '/updatePercentageCheck [Float, < 0.2, default 0.1] - updates percentage to show GPU alerts'
-        context.bot.send_message(chat_id=data["chatId"], text=txt)
+        await context.bot.send_message(chat_id=data["chatId"], text=txt)
 
 
-def get_ip(update: Update, context: CallbackContext):
+async def get_ip(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.id in [int(data["chatId"])]:
         ip = requests.get('https://api.ipify.org').content.decode('utf8')
-        context.bot.send_message(chat_id=data["chatId"], text=ip)
+        await context.bot.send_message(chat_id=data["chatId"], text=ip)
 
 
 def check_wifi():
@@ -67,77 +67,77 @@ def check_wifi():
         subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 
-def reboot(update: Update, context: CallbackContext):
+async def reboot(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.id in [int(data["chatId"])]:
-        reboot_rig(context)
+        await reboot_rig(context)
     else:
-        update.message.reply_text('Tomatela gato.')
+        await update.message.reply_text('Tomatela gato.')
 
 
-def reboot_rig(context):
+async def reboot_rig(context: ContextTypes.DEFAULT_TYPE):
     cmd = 'sudo reboot'
-    context.bot.send_message(chat_id=data["chatId"], text='Rebooting...')
+    await context.bot.send_message(chat_id=data["chatId"], text='Rebooting...')
     subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 
-def miner_restart(update: Update, context: CallbackContext):
+async def miner_restart(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.id in [int(data["chatId"])]:
         cmd = 'miner restart'
         subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        context.bot.send_message(chat_id=data["chatId"], text='Restarting miner...')
+        await context.bot.send_message(chat_id=data["chatId"], text='Restarting miner...')
     else:
-        update.message.reply_text('Tomatela gato.')
+        await update.message.reply_text('Tomatela gato.')
 
 
-def miner_stop(update: Update, context: CallbackContext):
+async def miner_stop(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.id in [int(data["chatId"])]:
         cmd = 'miner stop'
         subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        context.bot.send_message(chat_id=data["chatId"], text='Stopping miner...')
+        await context.bot.send_message(chat_id=data["chatId"], text='Stopping miner...')
     else:
-        update.message.reply_text('Tomatela gato.')
+        await update.message.reply_text('Tomatela gato.')
 
 
-def miner_start(update: Update, context: CallbackContext):
+async def miner_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.id in [int(data["chatId"])]:
         cmd = 'miner start'
         subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        context.bot.send_message(chat_id=data["chatId"], text='Starting miner...')
+        await context.bot.send_message(chat_id=data["chatId"], text='Starting miner...')
     else:
-        update.message.reply_text('Tomatela gato.')
+        await update.message.reply_text('Tomatela gato.')
 
 
-def start_check_rig(update: Update, context: CallbackContext):
+async def start_check_rig(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.id in [int(data["chatId"])]:
         global runCheck
         if runCheck is False:
             runCheck = True
             context.job_queue.run_repeating(check_bot, interval=300.0, first=0.0)
-            context.bot.send_message(chat_id=data["chatId"],
-                                     text='CheckRig: ' + str(runCheck) + ' comenzó ejecución de check rig')
+            await context.bot.send_message(chat_id=data["chatId"],
+                                           text='CheckRig: ' + str(runCheck) + ' comenzó ejecución de check rig')
 
 
-def stop_check_rig(update: Update, context: CallbackContext):
+async def stop_check_rig(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.id in [int(data["chatId"])]:
         global runCheck
         if runCheck is True:
             runCheck = False
-            context.job_queue.stop()
-            context.bot.send_message(chat_id=data["chatId"],
-                                     text='CheckRig: ' + str(runCheck) + ' se paró la ejecución de check rig')
+            await context.job_queue.stop()
+            await context.bot.send_message(chat_id=data["chatId"],
+                                           text='CheckRig: ' + str(runCheck) + ' se paró la ejecución de check rig')
 
 
-def get_rig_stats(update: Update, context: CallbackContext):
+async def get_rig_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.id in [int(data["chatId"])]:
         try:
             dict_result = get_miner_stats()
-            context.bot.send_message(chat_id=data["chatId"],
-                                     text=json.dumps(dict_result, sort_keys=True, indent=4).replace('\n', chr(10)))
+            await context.bot.send_message(chat_id=data["chatId"],
+                                           text=json.dumps(dict_result, sort_keys=True, indent=4).replace('\n', chr(10)))
         except:
-            context.bot.send_message(chat_id=data["chatId"], text=txt_problem())
+            await context.bot.send_message(chat_id=data["chatId"], text=txt_problem())
 
 
-def self_update(update: Update, context: CallbackContext):
+async def self_update(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.id in [int(data["chatId"])]:
         cmd = 'curl -o /home/user/python/bot.py https://raw.githubusercontent.com/nachosca/pyCrypto/main/telegramRigBot.py'
         subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -146,11 +146,11 @@ def self_update(update: Update, context: CallbackContext):
         cmd = 'sudo systemctl daemon-reload'
         subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         cmd = 'systemctl restart bot.service'
-        context.bot.send_message(chat_id=data["chatId"], text="update OK")
+        await context.bot.send_message(chat_id=data["chatId"], text="update OK")
         subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 
-def check_bot(context: CallbackContext):
+async def check_bot(context: ContextTypes.DEFAULT_TYPE):
     global consecutiveErrors
     if runCheck:
         check_wifi()
@@ -162,7 +162,7 @@ def check_bot(context: CallbackContext):
                 gpus = len(dict_result['temp'])
             else:
                 if gpus != len(dict_result['temp']):
-                    context.bot.send_message(chat_id=data["chatId"], text=json.dumps(dict_result, sort_keys=True, indent=4).replace('\n', chr(10)))
+                    await context.bot.send_message(chat_id=data["chatId"], text=json.dumps(dict_result, sort_keys=True, indent=4).replace('\n', chr(10)))
                     raise Exception()
 
             harmonic_mean = statistics.harmonic_mean(map(float, dict_result['hs']))
@@ -170,30 +170,30 @@ def check_bot(context: CallbackContext):
 
             for i in dict_result['hs']:
                 if (harmonic_mean / i - 1) > float(percentageAccepted):
-                    context.bot.send_message(chat_id=data["chatId"], text=json.dumps(dict_result, sort_keys=True, indent=4).replace('\n', chr(10)))
+                    await context.bot.send_message(chat_id=data["chatId"], text=json.dumps(dict_result, sort_keys=True, indent=4).replace('\n', chr(10)))
                     raise Exception()
 
             consecutiveErrors = 0
         except:
-            context.bot.send_message(chat_id=data["chatId"], text=f'Except: {consecutiveErrors}')
+            await context.bot.send_message(chat_id=data["chatId"], text=f'Except: {consecutiveErrors}')
             consecutiveErrors += 1
-            context.bot.send_message(chat_id=data["chatId"], text=txt_problem())
+            await context.bot.send_message(chat_id=data["chatId"], text=txt_problem())
         finally:
             if consecutiveErrors > 5:
-                reboot_rig(context)
+                await reboot_rig(context)
 
 
-def update_percentage_check(update: Update, context: CallbackContext):
+async def update_percentage_check(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.id in [int(data["chatId"])]:
         try:
             global percentageAccepted
             if float(context.args[0]) < 0.2:
                 percentageAccepted = float(context.args[0])
-                context.bot.send_message(chat_id=data["chatId"], text="Porcentaje de baja actualizado a: " + str(percentageAccepted))
+                await context.bot.send_message(chat_id=data["chatId"], text="Porcentaje de baja actualizado a: " + str(percentageAccepted))
             else:
-                context.bot.send_message(chat_id=data["chatId"], text="No tenés chances.")
+                await context.bot.send_message(chat_id=data["chatId"], text="No tenés chances.")
         except:
-            context.bot.send_message(chat_id=data["chatId"], text="Error en parámetro.")
+            await context.bot.send_message(chat_id=data["chatId"], text="Error en parámetro.")
 
 
 
@@ -246,34 +246,26 @@ def send_message():
 def main():
     """Run bot."""
     # Create the Updater and pass it your bot's token.
-    updater = Updater(data["botToken"])
-
-    # Get the dispatcher to register handlers
-    dispatcher = updater.dispatcher
+    application = ApplicationBuilder().token(data["botToken"]).build()
 
     # on different commands - answer in Telegram
-    dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(CommandHandler("help", help))
-    dispatcher.add_handler(CommandHandler("getIp", get_ip))
-    dispatcher.add_handler(CommandHandler("reboot", reboot))
-    dispatcher.add_handler(CommandHandler("minerRestart", miner_restart))
-    dispatcher.add_handler(CommandHandler("minerStop", miner_stop))
-    dispatcher.add_handler(CommandHandler("minerStart", miner_start))
-    dispatcher.add_handler(CommandHandler("rigStats", get_rig_stats))
-    dispatcher.add_handler(CommandHandler("startCheckRig", start_check_rig))
-    dispatcher.add_handler(CommandHandler("stopCheckRig", stop_check_rig))
-    dispatcher.add_handler(CommandHandler("selfUpdate", self_update))
-    dispatcher.add_handler(CommandHandler("updatePercentageCheck", update_percentage_check))
-
-    # Start the Bot
-    updater.start_polling()
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("help", help))
+    application.add_handler(CommandHandler("getIp", get_ip))
+    application.add_handler(CommandHandler("reboot", reboot))
+    application.add_handler(CommandHandler("minerRestart", miner_restart))
+    application.add_handler(CommandHandler("minerStop", miner_stop))
+    application.add_handler(CommandHandler("minerStart", miner_start))
+    application.add_handler(CommandHandler("rigStats", get_rig_stats))
+    application.add_handler(CommandHandler("startCheckRig", start_check_rig))
+    application.add_handler(CommandHandler("stopCheckRig", stop_check_rig))
+    application.add_handler(CommandHandler("selfUpdate", self_update))
+    application.add_handler(CommandHandler("updatePercentageCheck", update_percentage_check))
 
     send_message()
 
-    # Block until you press Ctrl-C or the process receives SIGINT, SIGTERM or
-    # SIGABRT. This should be used most of the time, since start_polling() is
-    # non-blocking and will stop the bot gracefully.
-    updater.idle()
+    # Start the Bot
+    application.run_polling()
 
 
 if __name__ == '__main__':
