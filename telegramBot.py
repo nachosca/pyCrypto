@@ -3,7 +3,7 @@ from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 import requests
 import json
 
-with open("/home/pi/secrets.txt", encoding="UTF-8") as filedata:
+with open("secrets.txt", encoding="UTF-8") as filedata:
     data = eval(filedata.read())
 
 runFutures = 0
@@ -260,7 +260,7 @@ async def update_futures_general_check_up(update: Update, context: ContextTypes.
         try:
             global futuresGeneralCheckUp
             futuresGeneralCheckUp = float(context.args[0])
-            await context.bot.send_message(chat_id=data["chatNacho"], text="Futures Check Down: " + str(futuresGeneralCheckUp))
+            await context.bot.send_message(chat_id=data["chatNacho"], text="Futures Check Up: " + str(futuresGeneralCheckUp))
         except:
             await context.bot.send_message(chat_id=data["chatNacho"], text="Error en parámetro.")
 
@@ -279,7 +279,7 @@ async def update_futures_check_data(update: Update, context: ContextTypes.DEFAUL
 
 def main():
     """Run bot."""
-    # Create the Updater and pass it your bot's token.
+    # Create the Application and pass it your bot's token.
     application = ApplicationBuilder().token(data["botToken"]).build()
 
     # on different commands - answer in Telegram
