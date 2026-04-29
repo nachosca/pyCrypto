@@ -1,5 +1,5 @@
 from telegram import Update
-from telegram.ext import Updater, CommandHandler, CallbackContext
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 import requests
 import subprocess
 
@@ -7,35 +7,35 @@ with open("/home/ubuntu/projects/pybot/secrets.txt", encoding="UTF-8") as fileda
     data = eval(filedata.read())
 
 
-def start(update: Update, context: CallbackContext) -> None:
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Sends explanation on how to use the bot."""
     txt = 'Useless bot'
 
-    update.message.reply_text(txt)
+    await update.message.reply_text(txt)
 
-def statusP(update: Update, context: CallbackContext):
+async def statusP(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.id in [data["chatNacho"]]:
         cmd = 'earnapp status'
         result = subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        context.bot.send_message(chat_id=context._chat_id_and_data[0], text=result.stderr.decode('utf-8'))
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=result.stderr.decode('utf-8'))
     else:
-        update.message.reply_text('Tomatela gato.')
+        await update.message.reply_text('Tomatela gato.')
 
-def startP(update: Update, context: CallbackContext):
+async def startP(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.id in [data["chatNacho"]]:
         cmd = 'earnapp start'
         result = subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        context.bot.send_message(chat_id=context._chat_id_and_data[0], text=result.stderr.decode('utf-8'))
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=result.stderr.decode('utf-8'))
     else:
-        update.message.reply_text('Tomatela gato.')
+        await update.message.reply_text('Tomatela gato.')
 
-def stopP(update: Update, context: CallbackContext):
+async def stopP(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.id in [data["chatNacho"]]:
         cmd = 'earnapp stop'
         result = subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        context.bot.send_message(chat_id=context._chat_id_and_data[0], text=result.stderr.decode('utf-8'))
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=result.stderr.decode('utf-8'))
     else:
-        update.message.reply_text('Tomatela gato.')
+        await update.message.reply_text('Tomatela gato.')
 
 def send_message():
     url = f"https://api.telegram.org/bot{data['botToken']}/sendMessage"
@@ -45,26 +45,18 @@ def send_message():
 def main():
     """Run bot."""
     # Create the Updater and pass it your bot's token.
-    updater = Updater(data["botToken"])
-
-    # Get the dispatcher to register handlers
-    dispatcher = updater.dispatcher
+    application = ApplicationBuilder().token(data["botToken"]).build()
 
     # on different commands - answer in Telegram
-    dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(CommandHandler("statusP", statusP))
-    dispatcher.add_handler(CommandHandler("startP", startP))
-    dispatcher.add_handler(CommandHandler("stopP", stopP))
-
-    # Start the Bot
-    updater.start_polling()
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("statusP", statusP))
+    application.add_handler(CommandHandler("startP", startP))
+    application.add_handler(CommandHandler("stopP", stopP))
 
     send_message()
 
-    # Block until you press Ctrl-C or the process receives SIGINT, SIGTERM or
-    # SIGABRT. This should be used most of the time, since start_polling() is
-    # non-blocking and will stop the bot gracefully.
-    updater.idle()
+    # Start the Bot
+    application.run_polling()
 
 if __name__ == '__main__':
     main()

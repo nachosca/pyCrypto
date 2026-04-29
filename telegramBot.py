@@ -1,9 +1,9 @@
 from telegram import Update
-from telegram.ext import Updater, CommandHandler, CallbackContext
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, JobQueue
 import requests
 import json
 
-with open("/home/pi/secrets.txt", encoding="UTF-8") as filedata:
+with open("secrets.txt", encoding="UTF-8") as filedata:
     data = eval(filedata.read())
 
 runFutures = 0
@@ -16,11 +16,11 @@ futuresGeneralCheckDown = -5.0
 futuresGeneralCheckUp = 8
 
 
-def start(update: Update, context: CallbackContext) -> None:
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Sends explanation on how to use the bot."""
     txt = 'Las alertas del bot se envían a t.me/CryptoPiolaAlerts'
 
-    update.message.reply_text(txt)
+    await update.message.reply_text(txt)
 
     txt = 'Cómo funciona esto?'
     txt += chr(10)
@@ -28,7 +28,7 @@ def start(update: Update, context: CallbackContext) -> None:
     txt += chr(10)
     txt += 'Ese rendimiento va variando constantemente. Si lo enganchás en un buen momento, puede rendir arriba del 4%'
 
-    update.message.reply_text(txt)
+    await update.message.reply_text(txt)
 
     txt = 'Cómo operar?'
     txt += chr(10)
@@ -40,7 +40,7 @@ def start(update: Update, context: CallbackContext) -> None:
     txt += chr(10)
     txt += 'Shorteas el contrato en 1x'
 
-    update.message.reply_text(txt)
+    await update.message.reply_text(txt)
 
     txt = 'Esperás al vencimiento del contrato'
     txt += chr(10)
@@ -54,13 +54,13 @@ def start(update: Update, context: CallbackContext) -> None:
     txt += chr(10)
     txt += 'Y listo, ganancia asegurada.'
 
-    update.message.reply_text(txt)
+    await update.message.reply_text(txt)
 
     txt = 'Si hacemos un 4% cada 3 meses -> a fin de año es un 17% aprox de ganancia asegurada.'
-    update.message.reply_text(txt)
+    await update.message.reply_text(txt)
 
 
-def help(update: Update, context: CallbackContext):
+async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.id in [data["chatNacho"]]:
         """Sends explanation on how to use the bot."""
         txt = '/getIp - devuelve el ip del host'
@@ -90,62 +90,78 @@ def help(update: Update, context: CallbackContext):
         txt += '/startInFuturesAuto - empieza el robot del rendimiento'
         txt += chr(10)
         txt += '/stopInFuturesAuto - para el robot del rendimiento'
-        context.bot.send_message(chat_id=data["chatNacho"], text=txt)
+        await context.bot.send_message(chat_id=data["chatNacho"], text=txt)
 
 
-def stop_futures_auto(update: Update, context: CallbackContext):
+async def stop_futures_auto(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.id in [data["chatNacho"]]:
         global runFutures
         runFutures = 0
-        context.job_queue.stop()
-        context.bot.send_message(chat_id=data["chatNacho"],
-                                 text='Runfutures: ' + str(runFutures) + ' se paró la ejecución de futuros')
+        if context.job_queue is None:
+            await context.bot.send_message(chat_id=data["chatNacho"],
+                                           text="JobQueue no configurado. Instala python-telegram-bot[job-queue] y reinicia.")
+            return
+        await context.job_queue.stop()
+        await context.bot.send_message(chat_id=data["chatNacho"],
+                                       text='Runfutures: ' + str(runFutures) + ' se paró la ejecución de futuros')
 
-def stop_in_futures_auto(update: Update, context: CallbackContext):
+async def stop_in_futures_auto(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.id in [data["chatNacho"]]:
         global runInFutures
         runInFutures = 0
-        context.job_queue.stop()
-        context.bot.send_message(chat_id=data["chatNacho"],
-                                 text='RunInfutures: ' + str(runFutures) + ' se paró la ejecución de in futuros')
+        if context.job_queue is None:
+            await context.bot.send_message(chat_id=data["chatNacho"],
+                                           text="JobQueue no configurado. Instala python-telegram-bot[job-queue] y reinicia.")
+            return
+        await context.job_queue.stop()
+        await context.bot.send_message(chat_id=data["chatNacho"],
+                                       text='RunInfutures: ' + str(runFutures) + ' se paró la ejecución de in futuros')
 
 
-def start_futures_auto(update: Update, context: CallbackContext):
+async def start_futures_auto(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.id in [data["chatNacho"]]:
         global runFutures
         runFutures = 1
+        if context.job_queue is None:
+            await context.bot.send_message(chat_id=data["chatNacho"],
+                                           text="JobQueue no configurado. Instala python-telegram-bot[job-queue] y reinicia.")
+            return
         context.job_queue.run_repeating(futures_auto, interval=86400.0, first=1.0)
-        context.bot.send_message(chat_id=data["chatNacho"],
-                                 text='Runfutures: ' + str(runFutures) + ' comenzó ejecución de futuros')
+        await context.bot.send_message(chat_id=data["chatNacho"],
+                                       text='Runfutures: ' + str(runFutures) + ' comenzó ejecución de futuros')
 
-def start_in_futures_auto(update: Update, context: CallbackContext):
+async def start_in_futures_auto(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.id in [data["chatNacho"]]:
         global runInFutures
         runInFutures = 1
+        if context.job_queue is None:
+            await context.bot.send_message(chat_id=data["chatNacho"],
+                                           text="JobQueue no configurado. Instala python-telegram-bot[job-queue] y reinicia.")
+            return
         context.job_queue.run_repeating(in_futures_auto, interval=60.0, first=1.0)
-        context.bot.send_message(chat_id=data["chatNacho"],
-                                 text='RunInfutures: ' + str(runInFutures) + ' comenzó ejecución de in futuros')
+        await context.bot.send_message(chat_id=data["chatNacho"],
+                                       text='RunInfutures: ' + str(runInFutures) + ' comenzó ejecución de in futuros')
 
 
-def check_data(update: Update, context: CallbackContext):
+async def check_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.id in [data["chatNacho"]]:
-        context.bot.send_message(chat_id=data["chatNacho"], text='RunFutures: ' + str(runFutures))
-        context.bot.send_message(chat_id=data["chatNacho"], text='RunInFutures: ' + str(runInFutures))
-        context.bot.send_message(chat_id=data["chatNacho"], text='futuresDate: ' + str(futuresDate))
-        context.bot.send_message(chat_id=data["chatNacho"], text='futuresCheckData: ' + str(futuresCheckData))
-        context.bot.send_message(chat_id=data["chatNacho"], text='futuresCheckUp: ' + str(futuresCheckUp))
-        context.bot.send_message(chat_id=data["chatNacho"], text='futuresCheckDown: ' + str(futuresCheckDown))
-        context.bot.send_message(chat_id=data["chatNacho"], text='futuresGeneralCheckDown: ' + str(futuresGeneralCheckDown))
-        context.bot.send_message(chat_id=data["chatNacho"], text='futuresGeneralCheckUp: ' + str(futuresGeneralCheckUp))
+        await context.bot.send_message(chat_id=data["chatNacho"], text='RunFutures: ' + str(runFutures))
+        await context.bot.send_message(chat_id=data["chatNacho"], text='RunInFutures: ' + str(runInFutures))
+        await context.bot.send_message(chat_id=data["chatNacho"], text='futuresDate: ' + str(futuresDate))
+        await context.bot.send_message(chat_id=data["chatNacho"], text='futuresCheckData: ' + str(futuresCheckData))
+        await context.bot.send_message(chat_id=data["chatNacho"], text='futuresCheckUp: ' + str(futuresCheckUp))
+        await context.bot.send_message(chat_id=data["chatNacho"], text='futuresCheckDown: ' + str(futuresCheckDown))
+        await context.bot.send_message(chat_id=data["chatNacho"], text='futuresGeneralCheckDown: ' + str(futuresGeneralCheckDown))
+        await context.bot.send_message(chat_id=data["chatNacho"], text='futuresGeneralCheckUp: ' + str(futuresGeneralCheckUp))
 
 
-def get_ip(update: Update, context: CallbackContext):
+async def get_ip(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.id in [data["chatNacho"]]:
         ip = requests.get('https://api.ipify.org').content.decode('utf8')
-        context.bot.send_message(chat_id=data["chatNacho"], text=ip)
+        await context.bot.send_message(chat_id=data["chatNacho"], text=ip)
 
 
-def futures_auto(context: CallbackContext):
+async def futures_auto(context: ContextTypes.DEFAULT_TYPE):
     if runFutures == 1:
         result = check_futures()
         resultText = ""
@@ -157,11 +173,11 @@ def futures_auto(context: CallbackContext):
             resultText += chr(10)
 
         if result[0].get('percentage') > futuresCheckUp:
-            context.bot.send_message(chat_id=data["chatChannel"],
-                                     text="Encontré buen rendimiento de futuros en Binance!")
-            context.bot.send_message(chat_id=data["chatChannel"], text=resultText)
+            await context.bot.send_message(chat_id=data["chatChannel"],
+                                           text="Encontré buen rendimiento de futuros en Binance!")
+            await context.bot.send_message(chat_id=data["chatChannel"], text=resultText)
 
-def in_futures_auto(context: CallbackContext):
+async def in_futures_auto(context: ContextTypes.DEFAULT_TYPE):
     if runInFutures == 1:
         result = check_futures()
         for symbol in futuresCheckData:
@@ -173,9 +189,9 @@ def in_futures_auto(context: CallbackContext):
                 result_text += chr(10)
 
             if result_in[0].get('percentage') < futuresCheckDown:
-                context.bot.send_message(chat_id=data["chatNacho"],
-                                         text="Seguí el precio. ojota")
-                context.bot.send_message(chat_id=data["chatNacho"], text=result_text)
+                await context.bot.send_message(chat_id=data["chatNacho"],
+                                               text="Seguí el precio. ojota")
+                await context.bot.send_message(chat_id=data["chatNacho"], text=result_text)
 
         result_text = ""
 
@@ -184,18 +200,18 @@ def in_futures_auto(context: CallbackContext):
             result_text += chr(10)
 
         if result[-1].get('percentage') < futuresGeneralCheckDown:
-            context.bot.send_message(chat_id=data["chatNacho"],
-                                     text="Seguí el precio. ojota")
-            context.bot.send_message(chat_id=data["chatNacho"], text=result_text)
+            await context.bot.send_message(chat_id=data["chatNacho"],
+                                           text="Seguí el precio. ojota")
+            await context.bot.send_message(chat_id=data["chatNacho"], text=result_text)
 
         if result[1].get('percentage') > futuresGeneralCheckUp:
-            context.bot.send_message(chat_id=data["chatNacho"],
-                                     text="Seguí el precio. ojota")
-            context.bot.send_message(chat_id=data["chatNacho"], text=result_text)
+            await context.bot.send_message(chat_id=data["chatNacho"],
+                                           text="Seguí el precio. ojota")
+            await context.bot.send_message(chat_id=data["chatNacho"], text=result_text)
 
 
 
-def futures(update: Update, context: CallbackContext):
+async def futures(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.id in [data["chatNacho"]]:
 
         result = check_futures()
@@ -206,9 +222,9 @@ def futures(update: Update, context: CallbackContext):
             resultText += json.dumps(i)
             resultText += chr(10)
 
-        context.bot.send_message(chat_id=context._chat_id_and_data[0], text=resultText)
+        await context.bot.send_message(chat_id=data["chatNacho"], text=resultText)
     else:
-        update.message.reply_text('Tomatela gato.')
+        await update.message.reply_text('Tomatela gato.')
 
 
 def send_message(message):
@@ -217,100 +233,92 @@ def send_message(message):
     requests.get(url, params=params)
 
 
-def update_futures_date(update: Update, context: CallbackContext):
+async def update_futures_date(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.id in [data["chatNacho"]]:
         try:
             global futuresDate
             futuresDate = str(context.args[0])
-            context.bot.send_message(chat_id=data["chatNacho"], text="Fecha actualizada a: " + str(futuresDate))
+            await context.bot.send_message(chat_id=data["chatNacho"], text="Fecha actualizada a: " + str(futuresDate))
         except:
-            context.bot.send_message(chat_id=data["chatNacho"], text="Error en parámetro.")
+            await context.bot.send_message(chat_id=data["chatNacho"], text="Error en parámetro.")
 
 
-def update_futures_check_up(update: Update, context: CallbackContext):
+async def update_futures_check_up(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.id in [data["chatNacho"]]:
         try:
             global futuresCheckUp
             futuresCheckUp = float(context.args[0])
-            context.bot.send_message(chat_id=data["chatNacho"], text="Futures Check Up: " + str(futuresCheckUp))
+            await context.bot.send_message(chat_id=data["chatNacho"], text="Futures Check Up: " + str(futuresCheckUp))
         except:
-            context.bot.send_message(chat_id=data["chatNacho"], text="Error en parámetro.")
+            await context.bot.send_message(chat_id=data["chatNacho"], text="Error en parámetro.")
 
 
-def update_futures_check_down(update: Update, context: CallbackContext):
+async def update_futures_check_down(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.id in [data["chatNacho"]]:
         try:
             global futuresCheckDown
             futuresCheckDown = float(context.args[0])
-            context.bot.send_message(chat_id=data["chatNacho"], text="Futures Check Down: " + str(futuresCheckDown))
+            await context.bot.send_message(chat_id=data["chatNacho"], text="Futures Check Down: " + str(futuresCheckDown))
         except:
-            context.bot.send_message(chat_id=data["chatNacho"], text="Error en parámetro.")
+            await context.bot.send_message(chat_id=data["chatNacho"], text="Error en parámetro.")
 
-def update_futures_general_check_down(update: Update, context: CallbackContext):
+async def update_futures_general_check_down(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.id in [data["chatNacho"]]:
         try:
             global futuresGeneralCheckDown
             futuresGeneralCheckDown = float(context.args[0])
-            context.bot.send_message(chat_id=data["chatNacho"], text="Futures Check Down: " + str(futuresGeneralCheckDown))
+            await context.bot.send_message(chat_id=data["chatNacho"], text="Futures Check Down: " + str(futuresGeneralCheckDown))
         except:
-            context.bot.send_message(chat_id=data["chatNacho"], text="Error en parámetro.")
+            await context.bot.send_message(chat_id=data["chatNacho"], text="Error en parámetro.")
 
-def update_futures_general_check_up(update: Update, context: CallbackContext):
+async def update_futures_general_check_up(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.id in [data["chatNacho"]]:
         try:
             global futuresGeneralCheckUp
             futuresGeneralCheckUp = float(context.args[0])
-            context.bot.send_message(chat_id=data["chatNacho"], text="Futures Check Down: " + str(futuresGeneralCheckUp))
+            await context.bot.send_message(chat_id=data["chatNacho"], text="Futures Check Up: " + str(futuresGeneralCheckUp))
         except:
-            context.bot.send_message(chat_id=data["chatNacho"], text="Error en parámetro.")
+            await context.bot.send_message(chat_id=data["chatNacho"], text="Error en parámetro.")
 
 
-def update_futures_check_data(update: Update, context: CallbackContext):
+async def update_futures_check_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.id in [data["chatNacho"]]:
         try:
             global futuresCheckData
             futuresCheckData = context.args[0].split(',')
-            context.bot.send_message(chat_id=data["chatNacho"], text="futuresCheckData parametros actualizados a: " + str(futuresCheckData))
+            await context.bot.send_message(chat_id=data["chatNacho"], text="futuresCheckData parametros actualizados a: " + str(futuresCheckData))
         except:
             futuresCheckData = []
-            context.bot.send_message(chat_id=data["chatNacho"], text="Error en parámetro.")
+            await context.bot.send_message(chat_id=data["chatNacho"], text="Error en parámetro.")
 
 
 
 def main():
     """Run bot."""
-    # Create the Updater and pass it your bot's token.
-    updater = Updater(data["botToken"])
-
-    # Get the dispatcher to register handlers
-    dispatcher = updater.dispatcher
+    # Create the Application and pass it your bot's token.
+    application = ApplicationBuilder().token(data["botToken"]).job_queue(JobQueue()).build()
 
     # on different commands - answer in Telegram
-    dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(CommandHandler("futures", futures))
-    dispatcher.add_handler(CommandHandler("startFuturesAuto", start_futures_auto))
-    dispatcher.add_handler(CommandHandler("stopFuturesAuto", stop_futures_auto))
-    dispatcher.add_handler(CommandHandler("checkData", check_data))
-    dispatcher.add_handler(CommandHandler("getIp", get_ip))
-    dispatcher.add_handler(CommandHandler("help", help))
-    dispatcher.add_handler(CommandHandler("updateFuturesDate", update_futures_date))
-    dispatcher.add_handler(CommandHandler("updateFuturesCheckData", update_futures_check_data))
-    dispatcher.add_handler(CommandHandler("updateFuturesCheckUp", update_futures_check_up))
-    dispatcher.add_handler(CommandHandler("updateFuturesCheckDown", update_futures_check_down))
-    dispatcher.add_handler(CommandHandler("updateFuturesGeneralCheckDown", update_futures_general_check_down))
-    dispatcher.add_handler(CommandHandler("updateFuturesGeneralCheckUp", update_futures_general_check_up))
-    dispatcher.add_handler(CommandHandler("startInFuturesAuto", start_in_futures_auto))
-    dispatcher.add_handler(CommandHandler("stopInFuturesAuto", stop_in_futures_auto))
-
-    # Start the Bot
-    updater.start_polling()
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("futures", futures))
+    application.add_handler(CommandHandler("startFuturesAuto", start_futures_auto))
+    application.add_handler(CommandHandler("stopFuturesAuto", stop_futures_auto))
+    application.add_handler(CommandHandler("checkData", check_data))
+    application.add_handler(CommandHandler("getIp", get_ip))
+    application.add_handler(CommandHandler("help", help))
+    application.add_handler(CommandHandler("updateFuturesDate", update_futures_date))
+    application.add_handler(CommandHandler("updateFuturesCheckData", update_futures_check_data))
+    application.add_handler(CommandHandler("updateFuturesCheckUp", update_futures_check_up))
+    application.add_handler(CommandHandler("updateFuturesCheckDown", update_futures_check_down))
+    application.add_handler(CommandHandler("updateFuturesGeneralCheckDown", update_futures_general_check_down))
+    application.add_handler(CommandHandler("updateFuturesGeneralCheckUp", update_futures_general_check_up))
+    application.add_handler(CommandHandler("startInFuturesAuto", start_in_futures_auto))
+    application.add_handler(CommandHandler("stopInFuturesAuto", stop_in_futures_auto))
 
     send_message("Bot has just Started")
 
-    # Block until you press Ctrl-C or the process receives SIGINT, SIGTERM or
-    # SIGABRT. This should be used most of the time, since start_polling() is
-    # non-blocking and will stop the bot gracefully.
-    updater.idle()
+    # Start the Bot
+    application.run_polling()
 
 
 def check_futures(symbol=None):
