@@ -1,5 +1,5 @@
 from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, JobQueue
 import requests
 import json
 
@@ -97,6 +97,10 @@ async def stop_futures_auto(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.id in [data["chatNacho"]]:
         global runFutures
         runFutures = 0
+        if context.job_queue is None:
+            await context.bot.send_message(chat_id=data["chatNacho"],
+                                           text="JobQueue no configurado. Instala python-telegram-bot[job-queue] y reinicia.")
+            return
         await context.job_queue.stop()
         await context.bot.send_message(chat_id=data["chatNacho"],
                                        text='Runfutures: ' + str(runFutures) + ' se paró la ejecución de futuros')
@@ -105,6 +109,10 @@ async def stop_in_futures_auto(update: Update, context: ContextTypes.DEFAULT_TYP
     if update.effective_chat.id in [data["chatNacho"]]:
         global runInFutures
         runInFutures = 0
+        if context.job_queue is None:
+            await context.bot.send_message(chat_id=data["chatNacho"],
+                                           text="JobQueue no configurado. Instala python-telegram-bot[job-queue] y reinicia.")
+            return
         await context.job_queue.stop()
         await context.bot.send_message(chat_id=data["chatNacho"],
                                        text='RunInfutures: ' + str(runFutures) + ' se paró la ejecución de in futuros')
@@ -114,6 +122,10 @@ async def start_futures_auto(update: Update, context: ContextTypes.DEFAULT_TYPE)
     if update.effective_chat.id in [data["chatNacho"]]:
         global runFutures
         runFutures = 1
+        if context.job_queue is None:
+            await context.bot.send_message(chat_id=data["chatNacho"],
+                                           text="JobQueue no configurado. Instala python-telegram-bot[job-queue] y reinicia.")
+            return
         context.job_queue.run_repeating(futures_auto, interval=86400.0, first=1.0)
         await context.bot.send_message(chat_id=data["chatNacho"],
                                        text='Runfutures: ' + str(runFutures) + ' comenzó ejecución de futuros')
@@ -122,6 +134,10 @@ async def start_in_futures_auto(update: Update, context: ContextTypes.DEFAULT_TY
     if update.effective_chat.id in [data["chatNacho"]]:
         global runInFutures
         runInFutures = 1
+        if context.job_queue is None:
+            await context.bot.send_message(chat_id=data["chatNacho"],
+                                           text="JobQueue no configurado. Instala python-telegram-bot[job-queue] y reinicia.")
+            return
         context.job_queue.run_repeating(in_futures_auto, interval=60.0, first=1.0)
         await context.bot.send_message(chat_id=data["chatNacho"],
                                        text='RunInfutures: ' + str(runInFutures) + ' comenzó ejecución de in futuros')
@@ -280,7 +296,7 @@ async def update_futures_check_data(update: Update, context: ContextTypes.DEFAUL
 def main():
     """Run bot."""
     # Create the Application and pass it your bot's token.
-    application = ApplicationBuilder().token(data["botToken"]).build()
+    application = ApplicationBuilder().token(data["botToken"]).job_queue(JobQueue()).build()
 
     # on different commands - answer in Telegram
     application.add_handler(CommandHandler("start", start))
