@@ -1,3 +1,4 @@
 beautifulsoup4>=4.12,<5
+playwright>=1.44
 python-telegram-bot[job-queue]>=21,<22
 requests>=2.31,<3

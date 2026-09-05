@@ -1,0 +1,16 @@
+[Unit]
+Description=Padel Dumont Availability Bot
+After=network.target
+
+[Service]
+User=root
+Group=root
+Type=idle
+Restart=on-failure
+Environment="PATH=/home/ubuntu/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/bin"
+EnvironmentFile=/etc/environment
+WorkingDirectory=/home/ubuntu/python
+ExecStart=/usr/bin/python3 /home/ubuntu/python/padelDumontBot.py
+
+[Install]
+WantedBy=multi-user.target
